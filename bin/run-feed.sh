@@ -1,8 +1,10 @@
 #!/bin/bash
 # Usage: bin/run-feed.sh <physics|math|dsa>
-# 1. reads the notes of the matching event in the "claude-maxing" calendar
-# 2. runs them through Claude (headless)
-# 3. appends the answer to feed.json, commits and pushes
+# 1. syncs main
+# 2. reads the notes of the matching event in the "claude-maxing" calendar
+# 3. runs them through Claude (headless)
+# 4. writes entries/<timestamp>-<slot>.json on a new branch feed/<slot>-<timestamp> and pushes it
+#    GitHub Actions then checks the branch, opens a PR, merges it and redeploys the page.
 set -euo pipefail
 
 SLOT="${1:?usage: run-feed.sh <physics|math|dsa>}"
@@ -24,7 +26,13 @@ case "$SLOT" in
   *) echo "unknown slot: $SLOT" >&2; exit 2 ;;
 esac
 
-# --- 1. notes from Calendar (recurring events keep the same notes on every occurrence) ---
+# --- 1. start from an up-to-date main ---
+if [ "${SKIP_PUSH:-0}" != "1" ]; then
+  git switch -q main >> "$LOG" 2>&1 || { log "could not switch to main (uncommitted changes?)"; exit 1; }
+  git pull -q --ff-only origin main >> "$LOG" 2>&1 || { log "could not update main"; exit 1; }
+fi
+
+# --- 2. notes from Calendar (recurring events keep the same notes on every occurrence) ---
 NOTES="$(osascript - "$CALENDAR_NAME" "$KEYWORD" <<'APPLESCRIPT'
 on run argv
   set calName to item 1 of argv
@@ -42,9 +50,9 @@ APPLESCRIPT
 
 if [ -z "${NOTES// /}" ]; then log "no notes found for '$KEYWORD' in '$CALENDAR_NAME'"; exit 1; fi
 
-# --- 2. Claude ---
+# --- 3. Claude ---
 TODAY="$(date '+%A %d %B %Y')"
-PROMPT="Today is $TODAY. You are producing today's '$SLOT' micro-session for Akhilesh, an iOS software engineer. Below are the notes from his calendar event; follow them exactly. Do not open links or use tools; rely on the notes and your own knowledge. If the notes ask for a daily item, pick today's item fresh. Reply in Markdown with only the content to publish: a short title line (##), then the session, under 300 words. Put any answer or check at the very end after a line that says 'Answer:'.
+PROMPT="Today is $TODAY. You are producing today's '$SLOT' micro-session for Akhilesh, an iOS software engineer. Below are the notes from his calendar event; follow them exactly. Do not open links or use tools; rely on the notes and your own knowledge. If the notes ask for a daily item, pick today's item fresh. Reply in Markdown with only the content to publish: a short title line (##), then the session, under 300 words. Put any answer or check at the very end after a line that says 'Answer:'. Do not include email addresses, file paths, links or personal details.
 
 --- CALENDAR NOTES ---
 $NOTES"
@@ -52,26 +60,35 @@ $NOTES"
 RESPONSE="$(printf '%s' "$PROMPT" | "$CLAUDE_BIN" -p 2>>"$LOG")" || { log "claude failed"; exit 1; }
 if [ -z "${RESPONSE// /}" ]; then log "empty response"; exit 1; fi
 
-# --- 3. append to feed.json ---
-SLOT="$SLOT" RESPONSE="$RESPONSE" python3 - <<'PY'
+# --- 4. write one entry file ---
+STAMP="$(date '+%Y-%m-%dT%H-%M-%S')"
+mkdir -p entries
+SLOT="$SLOT" STAMP="$STAMP" RESPONSE="$RESPONSE" python3 - <<'PY'
 import json, os, datetime
-p = "feed.json"
-try:
-    data = json.load(open(p))
-except Exception:
-    data = {"entries": []}
-tz = datetime.datetime.now().astimezone()
-data["entries"].append({"slot": os.environ["SLOT"], "time": tz.isoformat(timespec="seconds"), "text": os.environ["RESPONSE"].strip()})
-data["entries"] = data["entries"][-200:]
-tmp = p + ".tmp"
-json.dump(data, open(tmp, "w"), ensure_ascii=False, indent=1)
-os.replace(tmp, p)
+slot, stamp = os.environ["SLOT"], os.environ["STAMP"]
+entry = {
+    "slot": slot,
+    "time": datetime.datetime.now().astimezone().isoformat(timespec="seconds"),
+    "text": os.environ["RESPONSE"].strip(),
+}
+path = os.path.join("entries", f"{stamp}-{slot}.json")
+with open(path, "w", encoding="utf-8") as f:
+    json.dump(entry, f, ensure_ascii=False, indent=1)
+print(path)
 PY
 
-# --- 4. publish ---
+# --- 5. branch, push, back to main ---
 if [ "${SKIP_PUSH:-0}" = "1" ]; then log "done (push skipped)"; exit 0; fi
-git add feed.json
-git commit -q -m "feed: $SLOT $(date '+%F %H:%M')" || { log "nothing to commit"; exit 0; }
-git pull -q --rebase origin main >> "$LOG" 2>&1 || true
-git push -q origin main >> "$LOG" 2>&1 || { log "push failed"; exit 1; }
-log "published"
+BRANCH="feed/${SLOT}-${STAMP//[-:T]/}"
+git switch -q -c "$BRANCH"
+git add entries
+git commit -q -m "feed: $SLOT $(date '+%F %H:%M')"
+if git push -q -u origin "$BRANCH" >> "$LOG" 2>&1; then
+  log "pushed $BRANCH (GitHub Actions will check and merge it)"
+  git switch -q main
+  git branch -q -D "$BRANCH"
+else
+  log "push failed (branch $BRANCH kept locally)"
+  git switch -q main
+  exit 1
+fi

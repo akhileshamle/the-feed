@@ -1,0 +1,48 @@
+name: feed-merge
+
+# A scheduled run pushes a branch named feed/<slot>-<timestamp>.
+# This workflow checks it, opens a pull request, merges it, and triggers the deploy.
+on:
+  push:
+    branches: ["feed/**"]
+
+concurrency:
+  group: feed-merge
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  validate-and-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Runs before any repo code executes: an automated branch may only add entry files.
+      - name: Only entry files may change
+        run: |
+          git fetch origin main
+          bad=$(git diff --name-only origin/main...HEAD | grep -v '^entries/[^/]*\.json$' || true)
+          if [ -n "$bad" ]; then
+            echo "Unexpected files in an automated branch:"
+            echo "$bad"
+            exit 1
+          fi
+
+      - name: Validate entries
+        run: python3 scripts/build.py --check
+
+      - name: Open pull request and merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$GITHUB_REF_NAME" \
+            --title "feed: ${GITHUB_REF_NAME#feed/}" \
+            --body "Automated run. File-scope and entry checks passed."
+          gh pr merge "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --squash --delete-branch
+          gh workflow run deploy.yml --repo "$GITHUB_REPOSITORY" --ref main
