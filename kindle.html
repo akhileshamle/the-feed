@@ -20,7 +20,32 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Thu 26 Nov, 00:45</p>
+<p class="when">Updated Thu 26 Nov, 01:03</p>
+<h2>math</h2>
+<p class="when">Thu 26 Nov, 01:03</p>
+<h3>Math: P(at least one) on a flaky test</h3>
+<p><b>Principle (#4):</b> P(at least one) = 1 − (1 − p)^n. It's easier to compute the chance that nothing happens, then flip it.</p>
+<p><b>Problem:</b> Your CI has a UI test that fails at random 2% of the time, even when the code is fine. CI runs it 30 times a day.</p>
+<ol>
+<li>Estimate the chance it fails at least once today.</li>
+<li>Roughly how many runs until the chance of at least one failure passes 50%?</li>
+</ol>
+<p><b>Try it first:</b></p>
+<ul>
+<li>Per run, P(pass) = 0.98.</li>
+<li>For 30 runs, P(all pass) = 0.98³⁰. Use ln(0.98) ≈ −0.02, so 0.98³⁰ ≈ e^(−0.6).</li>
+<li>You can estimate e^(−0.6) as a bit above 0.5.</li>
+<li>For part 2, solve (0.98)^n = 0.5. This is the same shape as the Rule of 72 (#3), because both ask how long until something halves.</li>
+</ul>
+<p><b>Why it matters:</b> A "rare" 2% event is close to a coin flip over a day's runs. This is why small per-run flake rates make CI feel unreliable, and why retries or quarantining flaky tests pay off.</p>
+<p><b>Extension:</b> If you retry a failed test once, what is the new per-run failure rate? Assume the failures are independent.</p>
+<p>Answer:</p>
+<ol>
+<li>1 − 0.98³⁰ ≈ 1 − 0.545 ≈ <b>45%</b>.</li>
+<li>n ≈ 0.69 / 0.02 ≈ <b>35 runs</b>, which is about 70 / 2. (The exact value is 34.3, so 35 runs gets past 50%.)</li>
+<li>Extension: with one independent retry the failure rate is 0.02² = <b>0.04%</b>. Retries only help when the failures really are independent. A real bug fails every time.</li>
+</ol>
+<hr>
 <h2>dsa</h2>
 <p class="when">Thu 26 Nov, 00:45</p>
 <h3>DSA Micro-Session: Binary Search on a Rotated Sorted Array</h3>
@@ -91,31 +116,5 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 </ul>
 <p><b>Quick check:</b> A backlog grows 5% per week with no intervention. About how many weeks until it doubles?</p>
 <p>Answer: About 14 weeks (70 / 5 = 14; exactly ln2 / ln1.05 ≈ 14.2).</p>
-<hr>
-<h2>physics</h2>
-<p class="when">Wed 25 Nov, 23:47</p>
-<h3>Physics Drill: Feedback Loops</h3>
-<p><b>Concept:</b> dx/dt = kx. The rate of change is proportional to the current amount.</p>
-<ul>
-<li><b>k &gt; 0</b> is a reinforcing loop. It compounds, like interest, viral growth or tech debt.</li>
-<li><b>k &lt; 0</b> is a stabilizing loop. It decays toward a set point, like a thermostat, a retry backoff or a code review gate.</li>
-</ul>
-<p><b>Solution:</b> x(t) = x₀·e^(kt). The doubling time is ln(2)/k ≈ 0.69/k.</p>
-<p><b>Question to ask:</b> What is x, and what sets the sign of k?</p>
-<p><b>Engineer's lens:</b> Untested code makes the next change riskier. Risk makes people ship less often, so changes batch up and get riskier still. That is a positive loop. CI, small PRs and feature flags add a negative loop that pulls x back down.</p>
-<p><b>Real-life application (2 min):</b></p>
-<ol>
-<li>Pick one item, such as your inbox, your workout habit or your app's crash backlog.</li>
-<li>Name x, the quantity that changes.</li>
-<li>Ask whether more x makes more x (k &gt; 0) or less x (k &lt; 0).</li>
-<li>Find one cheap action that flips k from positive to negative.</li>
-</ol>
-<p><b>Drill problem:</b> Your untriaged bug backlog grows about 7% per week because each unfixed bug causes follow-on bugs. You have 40 bugs now, and you do nothing.</p>
-<ol>
-<li>What is the doubling time?</li>
-<li>Roughly how many bugs will there be after 20 weeks?</li>
-</ol>
-<p>Use ln(2) ≈ 0.69 and e^1.4 ≈ 4.</p>
-<p>Answer: The doubling time is 0.69 / 0.07 ≈ <b>10 weeks</b>. After 20 weeks the backlog doubles twice, so it is about 40 × 4 = <b>160 bugs</b>. (The exact compounding gives 40 × 1.07²⁰ ≈ 155, so the estimate is close.) Fixing even a fraction of the bugs each week makes k negative, and the backlog then shrinks instead of growing.</p>
 </body>
 </html>
