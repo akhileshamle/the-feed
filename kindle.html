@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Feed</title>
+<style>
+body { background: #fff; color: #000; font-family: Georgia, serif; font-size: 22px; line-height: 1.5; margin: 0; padding: 16px; }
+h1 { font-size: 1.4em; margin: 0 0 4px 0; }
+h2 { font-size: 1.15em; margin: 0 0 2px 0; text-transform: uppercase; }
+h3 { font-size: 1.1em; margin: 14px 0 4px 0; }
+p { margin: 8px 0; }
+ul, ol { margin: 8px 0; padding-left: 28px; }
+li { margin: 4px 0; }
+pre { border: 1px solid #000; padding: 8px; font-size: 0.8em; white-space: pre-wrap; word-wrap: break-word; }
+code { font-family: Courier, monospace; font-size: 0.9em; }
+.when { font-size: 0.8em; margin: 0 0 8px 0; }
+hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
+</style>
+</head>
+<body>
+<h1>The Feed</h1>
+<p class="when">Updated Thu 26 Nov, 00:45</p>
+<h2>dsa</h2>
+<p class="when">Thu 26 Nov, 00:45</p>
+<h3>DSA Micro-Session: Binary Search on a Rotated Sorted Array</h3>
+<p><b>Time: 10 minutes. Recall first, then check.</b></p>
+<h3>1. Recall (3 min)</h3>
+<p>Cover the solution. Write the algorithm from memory in Swift or pseudocode.</p>
+<p><b>Problem:</b> <code>[4, 5, 6, 7, 0, 1, 2]</code> is a sorted array rotated at an unknown pivot, with distinct values. Find the index of <code>target</code> in O(log n).</p>
+<p>Before you code, answer these:</p>
+<ul>
+<li>At any <code>mid</code>, which half is guaranteed sorted?</li>
+<li>How do you decide whether <code>target</code> lies in that sorted half?</li>
+<li>What are the loop condition and the pointer updates?</li>
+</ul>
+<h3>2. Attempt (4 min)</h3>
+<p>Code <code>search(_ nums: [Int], _ target: Int) -&gt; Int</code>. It returns -1 if the target isn't found. Then trace <code>target = 0</code> on the array above.</p>
+<h3>3. Check (3 min)</h3>
+<p>Compare your answer with the Answer section below.</p>
+<p><b>Stretch:</b> What breaks if duplicates are allowed? What is the worst-case time?</p>
+<p>Answer:</p>
+<pre>func search(_ nums: [Int], _ target: Int) -&gt; Int {
+    var lo = 0, hi = nums.count - 1
+    while lo &lt;= hi {
+        let mid = lo + (hi - lo) / 2
+        if nums[mid] == target { return mid }
+        if nums[lo] &lt;= nums[mid] {            // left half sorted
+            if nums[lo] &lt;= target &amp;&amp; target &lt; nums[mid] {
+                hi = mid - 1
+            } else {
+                lo = mid + 1
+            }
+        } else {                              // right half sorted
+            if nums[mid] &lt; target &amp;&amp; target &lt;= nums[hi] {
+                lo = mid + 1
+            } else {
+                hi = mid - 1
+            }
+        }
+    }
+    return -1
+}</pre>
+<p><b>Trace, target = 0:</b></p>
+<ul>
+<li>lo=0, hi=6, mid=3 (7). Left half [4..7] is sorted and 0 isn't in it, so lo=4.</li>
+<li>lo=4, hi=6, mid=5 (1). Left half [0,1] is sorted and 0 is in it, so hi=4.</li>
+<li>lo=4, hi=4, mid=4 (0). Found, so return <b>4</b>.</li>
+</ul>
+<p><b>Key idea:</b> one half around <code>mid</code> is always sorted. Check whether the target falls in that half, and discard the other half. The <code>&lt;=</code> in <code>nums[lo] &lt;= nums[mid]</code> matters when <code>lo == mid</code>.</p>
+<p><b>Stretch answer:</b> with duplicates, <code>nums[lo] == nums[mid] == nums[hi]</code> makes the sorted half ambiguous. You can only shrink with <code>lo += 1; hi -= 1</code>. The worst case degrades to <b>O(n)</b>.</p>
+<hr>
+<h2>physics</h2>
+<p class="when">Wed 25 Nov, 23:52</p>
+<h3>Physics Drill: Feedback Loops (dx/dt = kx)</h3>
+<p><b>Concept:</b> The rate of change of x is proportional to x itself. If k &gt; 0, growth feeds on itself and compounds. If k &lt; 0, deviations shrink and the system settles. Solution: x(t) = x₀·e^(kt).</p>
+<p><b>Question:</b> In a feedback loop, what decides whether things explode or stabilize?</p>
+<p>The sign of k decides it, and the magnitude of k sets the speed. The doubling time for k &gt; 0 is ln2 / k ≈ 0.7 / k. The decay time constant for k &lt; 0 is 1 / |k|.</p>
+<p><b>Rule of thumb:</b> If something grows about r% per period, it doubles in roughly 70 / r periods.</p>
+<p><b>Apply it to an iOS engineer's life:</b></p>
+<ol>
+<li><b>Tech debt (k &gt; 0):</b> Messy code makes changes slower. Slower changes mean more shortcuts, and shortcuts mean messier code. The loop compounds, so the fix is to break it early with small refactors.</li>
+<li><b>Test coverage (k &lt; 0 on bugs):</b> Tests catch regressions, which gives fewer bugs, which means less firefighting. That frees time to write more tests. This is a stabilizing loop that can also turn into a virtuous growth loop.</li>
+<li><b>Learning:</b> Each concept you learn makes the next one easier to attach. If you gain 1% per day, the factor is 1.01^365 ≈ 37×. The caveat is that real growth saturates (logistic, not pure exponential), so check whether you are still on the steep part of the curve.</li>
+</ol>
+<p><b>Today's drill (one real-life item):</b> Pick one habit or system you have, such as the app's crash rate, your PR review backlog, or your sleep. Write down:</p>
+<ul>
+<li>What feeds back into what?</li>
+<li>Is k positive or negative right now?</li>
+<li>What one small change would flip the sign or shrink |k|?</li>
+</ul>
+<p><b>Quick check:</b> A backlog grows 5% per week with no intervention. About how many weeks until it doubles?</p>
+<p>Answer: About 14 weeks (70 / 5 = 14; exactly ln2 / ln1.05 ≈ 14.2).</p>
+<hr>
+<h2>physics</h2>
+<p class="when">Wed 25 Nov, 23:47</p>
+<h3>Physics Drill: Feedback Loops</h3>
+<p><b>Concept:</b> dx/dt = kx. The rate of change is proportional to the current amount.</p>
+<ul>
+<li><b>k &gt; 0</b> is a reinforcing loop. It compounds, like interest, viral growth or tech debt.</li>
+<li><b>k &lt; 0</b> is a stabilizing loop. It decays toward a set point, like a thermostat, a retry backoff or a code review gate.</li>
+</ul>
+<p><b>Solution:</b> x(t) = x₀·e^(kt). The doubling time is ln(2)/k ≈ 0.69/k.</p>
+<p><b>Question to ask:</b> What is x, and what sets the sign of k?</p>
+<p><b>Engineer's lens:</b> Untested code makes the next change riskier. Risk makes people ship less often, so changes batch up and get riskier still. That is a positive loop. CI, small PRs and feature flags add a negative loop that pulls x back down.</p>
+<p><b>Real-life application (2 min):</b></p>
+<ol>
+<li>Pick one item, such as your inbox, your workout habit or your app's crash backlog.</li>
+<li>Name x, the quantity that changes.</li>
+<li>Ask whether more x makes more x (k &gt; 0) or less x (k &lt; 0).</li>
+<li>Find one cheap action that flips k from positive to negative.</li>
+</ol>
+<p><b>Drill problem:</b> Your untriaged bug backlog grows about 7% per week because each unfixed bug causes follow-on bugs. You have 40 bugs now, and you do nothing.</p>
+<ol>
+<li>What is the doubling time?</li>
+<li>Roughly how many bugs will there be after 20 weeks?</li>
+</ol>
+<p>Use ln(2) ≈ 0.69 and e^1.4 ≈ 4.</p>
+<p>Answer: The doubling time is 0.69 / 0.07 ≈ <b>10 weeks</b>. After 20 weeks the backlog doubles twice, so it is about 40 × 4 = <b>160 bugs</b>. (The exact compounding gives 40 × 1.07²⁰ ≈ 155, so the estimate is close.) Fixing even a fraction of the bugs each week makes k negative, and the backlog then shrinks instead of growing.</p>
+</body>
+</html>

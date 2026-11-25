@@ -68,9 +68,12 @@ json.dump(data, open(tmp, "w"), ensure_ascii=False, indent=1)
 os.replace(tmp, p)
 PY
 
+# Kindle page: a failure here must never block the main feed
+python3 "$REPO/bin/make-kindle.py" >> "$LOG" 2>&1 || log "kindle page failed"
+
 # --- 4. publish ---
 if [ "${SKIP_PUSH:-0}" = "1" ]; then log "done (push skipped)"; exit 0; fi
-git add feed.json
+git add feed.json kindle.html
 git commit -q -m "feed: $SLOT $(date '+%F %H:%M')" || { log "nothing to commit"; exit 0; }
 git pull -q --rebase origin main >> "$LOG" 2>&1 || true
 git push -q origin main >> "$LOG" 2>&1 || { log "push failed"; exit 1; }
