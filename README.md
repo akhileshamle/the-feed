@@ -1,85 +1,25 @@
 # the-feed
 
-Three daily prompts run on a Mac and publish to a GitHub Pages page.
+Three daily prompts (physics 11:15, math 11:25, DSA 14:00 IST) run on your Mac.
+Each reads its prompt from the event notes in your `claude-maxing` calendar, asks Claude,
+appends the answer to `feed.json`, and pushes. GitHub Pages serves `index.html`.
 
-| Slot | Time (IST) | Calendar event it reads |
-|---|---|---|
-| physics | 11:15 | `/physics/maxing/cheat-sheet` |
-| math | 11:25 | `/math/maxing/cheat-sheet` |
-| dsa | 14:00 | `/dsa/maxing/cheat-sheet` |
+## One-time setup (in Terminal, from this folder)
 
-Each run reads the event notes from the `claude-maxing` calendar, sends them to Claude (`claude -p`),
-appends the reply to `feed.json`, then commits and pushes. `index.html` renders `feed.json`.
+    git init -b main && git add -A && git commit -m "init"
+    gh repo create the-feed --public --source=. --push        # or create it on github.com and add the remote
+    gh api -X POST repos/$(gh api user -q .login)/the-feed/pages -f "source[branch]=main" -f "source[path]=/"
 
-> **This repo and page are public.** Everything Claude writes here can be read by anyone with the URL.
-> Keep calendar notes free of private plans, finances, work-confidential details, links and credentials.
+Your page: https://<your-username>.github.io/the-feed/
 
-## Files
+## Test, then schedule
 
-- `index.html`: the page (reads `feed.json`)
-- `feed.json`: all entries, last 200 kept
-- `bin/run-feed.sh`: one run: `bash bin/run-feed.sh <physics|math|dsa>`
-- `install.sh`: installs or removes the three daily launchd jobs
-- `logs/`, `bin/feed.env`: local only, git-ignored
+    bash bin/run-feed.sh physics     # allow the Calendar access prompt; check the page in ~1 min
+    bash install.sh                  # installs the three daily jobs
 
-## Setup (once)
+Logs: `logs/run.log`. Remove the jobs: `bash install.sh --uninstall`.
 
-1. Install Claude Code and sign in (`claude`), then check `claude --version`.
-2. Clone this repo to **`~/Developer/the-feed`**. Do not use Documents, Desktop or Downloads: macOS blocks scheduled jobs from reading them.
-3. Sign git in to GitHub over HTTPS with a fine-grained token limited to this repo (Contents: read and write). The macOS Keychain stores it on the first push.
-4. Turn on Pages: Settings, Pages, deploy from branch `main`, folder `/ (root)`.
-5. Test: `bash bin/run-feed.sh physics`, allow the Calendar prompt, and check `logs/run.log` for `published`.
-6. Schedule: `bash install.sh`.
-
-## Everyday commands
-
-Run from `~/Developer/the-feed`.
-
-| Do this | Command |
-|---|---|
-| Check recent runs | `tail -5 logs/run.log` |
-| Run one now | `bash bin/run-feed.sh physics` |
-| See job status (exit code `0` is fine, `126` means blocked) | `launchctl list \| grep thefeed` |
-| Test the scheduled path | `launchctl kickstart gui/$(id -u)/com.thefeed.physics` |
-| Stop all jobs | `bash install.sh --uninstall` |
-| Start or reinstall all jobs | `bash install.sh` |
-| Pause one job | `launchctl bootout gui/$(id -u)/com.thefeed.physics` |
-
-## Changing things
-
-- **A prompt:** edit that event's notes in the `claude-maxing` calendar.
-- **A time:** edit the `JOBS` list in `install.sh`, then run `bash install.sh`.
-- **A new slot:** add a `case` branch in `bin/run-feed.sh` and a line in `JOBS`.
-- **Moved the folder or reinstalled Claude:** run `bash install.sh` again.
-
-## When something fails
-
-Look at `logs/run.log` and `logs/launchd-<slot>.err` first.
-
-| Message | Likely cause and fix |
-|---|---|
-| `osascript failed` | Calendar access blocked. System Settings, Privacy & Security, Automation. |
-| `no notes found` | Event title or calendar name changed. |
-| `claude failed` | Login expired. Run `claude` once to sign in. |
-| `push failed` | Token expired or revoked. See below. |
-| `Operation not permitted`, exit `126` | Folder is in a macOS-protected location. Move it to `~/Developer`. |
-| Push rejected | `git pull --rebase origin main`, then `git push`. |
-
-### Renewing the token
-
-1. Create a new fine-grained token limited to this repo, with Contents set to read and write.
-2. Clear the old one: `printf "protocol=https\nhost=github.com\n\n" | git credential-osxkeychain erase`
-3. Run `git push` and enter your GitHub username and the new token.
-
-## How it behaves
-
-- The Mac must be awake and logged in. A locked screen is fine.
-- A run missed while the Mac sleeps happens on wake. A run missed while it is off is skipped.
-- Jobs reload on their own after a restart, once you log in.
-
-## Taking it down
-
-1. `bash install.sh --uninstall`
-2. Delete the repo, or make it private, in GitHub Settings, Danger Zone. The page goes offline either way.
-3. Delete the token in GitHub Settings, Developer settings, Fine-grained tokens.
-4. Delete the local folder if you want it gone.
+## Notes
+- The repo is public: anything Claude writes here is readable by anyone with the URL.
+- The Mac must be awake. Missed jobs run when it wakes.
+- Edit the event notes in Calendar to change a prompt. Times live in `install.sh`.
