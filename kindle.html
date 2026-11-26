@@ -20,7 +20,39 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Thu 26 Nov, 01:03</p>
+<p class="when">Updated Thu 26 Nov, 11:15</p>
+<h2>physics</h2>
+<p class="when">Thu 26 Nov, 11:15</p>
+<h3>Physics Micro-Session: Feedback Loops (dx/dt = kx)</h3>
+<p><b>Concept (1 min)</b> When the rate at which something changes depends on how much of it there already is, you have a feedback loop. The equation dx/dt = kx gives x(t) = x₀·e^(kt).</p>
+<ul>
+<li><b>k &gt; 0 (positive feedback):</b> growth compounds. It is slow at first, then sudden.</li>
+<li><b>k &lt; 0 (negative feedback):</b> the system corrects itself and settles. Think of a thermostat.</li>
+</ul>
+<p>A quick shortcut is the <b>Rule of 70</b>. Doubling (or halving) time ≈ 70 / (percent rate per period).</p>
+<p><b>Lens (1 min)</b> The real question is "what does this feed back into?", not "how big is it now?" A small k that runs for a long time beats a big push that happens once.</p>
+<p><b>iOS example (2 min)</b></p>
+<ul>
+<li><b>Positive loop (bad):</b> messy module → slow builds → rushed fixes → messier module. Tech debt compounds like interest.</li>
+<li><b>Positive loop (good):</b> better tests → safer refactors → cleaner code → tests that are easier to write.</li>
+<li><b>Negative loop (stabilizer):</b> a CI check that fails the build when app launch time goes past a set budget. Every time drift happens, it gets pushed back.</li>
+</ul>
+<p>To change a system, find the sign of k. Slowing down a bad loop usually means adding a negative-feedback check, like a lint rule, a size budget or a weekly review. Extra effort alone doesn't do it.</p>
+<p><b>Drill (1 min)</b> Your project's clean build time grows about 5% per month as features are added. It's 4 minutes today.</p>
+<ol>
+<li>Roughly how long until it's 8 minutes?</li>
+<li>About how long would it be after 2 years if nothing changes?</li>
+<li>Name one negative-feedback mechanism that would set k ≤ 0.</li>
+</ol>
+<p><b>Apply today:</b> Pick one habit or metric in your week. Is its k positive or negative? Write down one change that would flip or reduce it.</p>
+<p>---</p>
+<p>Answer:</p>
+<ol>
+<li>70 / 5 ≈ <b>14 months</b> to double, so about 8 minutes.</li>
+<li>24 months ≈ 1.7 doublings → 4 × 2^1.7 ≈ <b>13 minutes</b> (e^(0.05×24) ≈ 3.3×).</li>
+<li>Examples: a CI build-time budget that fails when exceeded, a recurring "modularize one target" ticket, or required build caching and binary frameworks for stable modules.</li>
+</ol>
+<hr>
 <h2>math</h2>
 <p class="when">Thu 26 Nov, 01:03</p>
 <h3>Math: P(at least one) on a flaky test</h3>
@@ -94,27 +126,5 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 </ul>
 <p><b>Key idea:</b> one half around <code>mid</code> is always sorted. Check whether the target falls in that half, and discard the other half. The <code>&lt;=</code> in <code>nums[lo] &lt;= nums[mid]</code> matters when <code>lo == mid</code>.</p>
 <p><b>Stretch answer:</b> with duplicates, <code>nums[lo] == nums[mid] == nums[hi]</code> makes the sorted half ambiguous. You can only shrink with <code>lo += 1; hi -= 1</code>. The worst case degrades to <b>O(n)</b>.</p>
-<hr>
-<h2>physics</h2>
-<p class="when">Wed 25 Nov, 23:52</p>
-<h3>Physics Drill: Feedback Loops (dx/dt = kx)</h3>
-<p><b>Concept:</b> The rate of change of x is proportional to x itself. If k &gt; 0, growth feeds on itself and compounds. If k &lt; 0, deviations shrink and the system settles. Solution: x(t) = x₀·e^(kt).</p>
-<p><b>Question:</b> In a feedback loop, what decides whether things explode or stabilize?</p>
-<p>The sign of k decides it, and the magnitude of k sets the speed. The doubling time for k &gt; 0 is ln2 / k ≈ 0.7 / k. The decay time constant for k &lt; 0 is 1 / |k|.</p>
-<p><b>Rule of thumb:</b> If something grows about r% per period, it doubles in roughly 70 / r periods.</p>
-<p><b>Apply it to an iOS engineer's life:</b></p>
-<ol>
-<li><b>Tech debt (k &gt; 0):</b> Messy code makes changes slower. Slower changes mean more shortcuts, and shortcuts mean messier code. The loop compounds, so the fix is to break it early with small refactors.</li>
-<li><b>Test coverage (k &lt; 0 on bugs):</b> Tests catch regressions, which gives fewer bugs, which means less firefighting. That frees time to write more tests. This is a stabilizing loop that can also turn into a virtuous growth loop.</li>
-<li><b>Learning:</b> Each concept you learn makes the next one easier to attach. If you gain 1% per day, the factor is 1.01^365 ≈ 37×. The caveat is that real growth saturates (logistic, not pure exponential), so check whether you are still on the steep part of the curve.</li>
-</ol>
-<p><b>Today's drill (one real-life item):</b> Pick one habit or system you have, such as the app's crash rate, your PR review backlog, or your sleep. Write down:</p>
-<ul>
-<li>What feeds back into what?</li>
-<li>Is k positive or negative right now?</li>
-<li>What one small change would flip the sign or shrink |k|?</li>
-</ul>
-<p><b>Quick check:</b> A backlog grows 5% per week with no intervention. About how many weeks until it doubles?</p>
-<p>Answer: About 14 weeks (70 / 5 = 14; exactly ln2 / ln1.05 ≈ 14.2).</p>
 </body>
 </html>
