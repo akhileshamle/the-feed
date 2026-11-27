@@ -23,7 +23,34 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Fri 27 Nov, 23:24</p>
+<p class="when">Updated Fri 27 Nov, 23:25</p>
+<h2>math</h2>
+<p class="when">Fri 27 Nov, 23:25</p>
+<h3>Friday: Fermi Estimation</h3>
+<p>Break a number you can't know into 3–5 factors you can roughly guess, then multiply them. Round each factor to an easy number. The errors tend to cancel out, so you usually land within a factor of 2–3 of the true value.</p>
+<p><b>Problem</b></p>
+<p>Your team's API serves about <b>50 requests per second</b>, all day, every day. Each request writes about <b>4 log lines</b> of about <b>250 bytes</b> each. Logs are kept for <b>30 days</b>, and storage costs about <b>$0.10 per GB per month</b>.</p>
+<p>Roughly how much does storing these logs cost each month? Then a manager proposes logging <b>20 lines per request</b> "for better debugging." What would the bill become?</p>
+<p><b>Try it first</b></p>
+<ul>
+<li>Round seconds in a day to a power of ten.</li>
+<li>Get bytes per day first, then the total held at any moment under 30-day retention.</li>
+<li>The second question doesn't need a fresh calculation from scratch.</li>
+</ul>
+<p><b>Why it matters:</b> Fermi estimates let you size a cloud bill, a market or a hiring plan in two minutes. They also show you which factor is worth checking before anyone signs off.</p>
+<hr class="ans">
+<h3>Answer</h3>
+<ul>
+<li>Seconds per day: 86,400 ≈ 10⁵</li>
+<li>Requests per day: 50 × 10⁵ = 5 × 10⁶</li>
+<li>Bytes per request: 4 × 250 = 1,000 B ≈ 1 KB</li>
+<li>Data per day: 5 × 10⁶ × 1 KB = 5 × 10⁹ B ≈ <b>5 GB/day</b></li>
+<li>Held at any time (30-day retention): 5 × 30 = <b>150 GB</b></li>
+<li>Monthly cost: 150 × $0.10 ≈ <b>$15/month</b></li>
+</ul>
+<p>With exact figures (86,400 s gives 4.32 GB/day and about 130 GB stored), the bill is about <b>$13</b>, close to the estimate.</p>
+<p>With 20 lines per request, every byte count is 5× larger: about 750 GB stored, so about <b>$75/month</b>. Storage alone is still cheap. Search and indexing tools usually charge per GB <i>ingested</i>, which is a 5× jump from 5 to 25 GB/day, so that's the factor to check first.</p>
+<hr>
 <h2>physics</h2>
 <p class="when">Fri 27 Nov, 23:24</p>
 <h3>Friday: Feedback Loops (dx/dt = kx)</h3>
@@ -76,30 +103,6 @@ answer = dfs(root, root.val, root.val)</pre>
 <li><b>Time:</b> O(n), because each node is visited once.</li>
 <li><b>Space:</b> O(h) for the recursion stack. That is O(log n) when the tree is balanced and O(n) when it is skewed.</li>
 </ul>
-<hr>
-<h2>math</h2>
-<p class="when">Fri 27 Nov, 23:13</p>
-<h3>Friday: Fermi estimation</h3>
-<p>Break a number you can't look up into 3–5 factors you can guess, then multiply them. Each guess may be off, but the errors tend to cancel, so the result usually lands within a factor of 2–3 of the truth.</p>
-<p><b>Problem:</b> Your iOS team has 8 engineers. Each pushes branches that trigger a CI build of about 12 minutes. Roughly how many <b>engineer-hours per year</b> does the team spend waiting on CI builds, unable to do focused work?</p>
-<p><b>Try it first:</b></p>
-<ul>
-<li>Guess how many builds one engineer triggers on a typical workday.</li>
-<li>Not every minute of a build is lost. Guess what fraction of build time someone is actually blocked.</li>
-<li>Use about 230 working days in a year.</li>
-</ul>
-<p><b>Why it matters:</b> A rough number like this lets you argue for a faster CI machine or build caching in money terms, without waiting for a dashboard.</p>
-<hr class="ans">
-<h3>Answer</h3>
-<p>One reasonable estimate (your guesses can differ):</p>
-<ul>
-<li>Builds per engineer per day: <b>6</b></li>
-<li>Team builds per day: 8 × 6 = <b>48</b></li>
-<li>Build minutes per day: 48 × 12 = <b>576 min ≈ 9.6 h</b></li>
-<li>Fraction of that time someone is blocked: <b>1/3</b>, so 9.6 / 3 ≈ <b>3.2 h/day</b></li>
-<li>Per year: 3.2 × 230 ≈ <b>736 h ≈ 740 engineer-hours</b></li>
-</ul>
-<p>That is about 18 full 40-hour work weeks a year. At about $100 per engineer-hour, it costs around <b>$74k a year</b>. Halving build time would save about $37k a year, which is more than a fast CI Mac costs.</p>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
