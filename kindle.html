@@ -23,7 +23,41 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Fri 27 Nov, 23:57</p>
+<p class="when">Updated Fri 27 Nov, 23:58</p>
+<h2>dsa</h2>
+<p class="when">Fri 27 Nov, 23:58</p>
+<h3>Friday: Trees (DFS, BFS, recursion)</h3>
+<p><b>When to reach for it:</b> Whenever a problem has hierarchical structure and the answer at a node can be computed from the answers of its children (or from information passed down from its parent).</p>
+<p><b>Problem: Longest Univalue Path.</b> Given a binary tree, return the length (in edges) of the longest path where every node on the path has the same value. The path may or may not pass through the root and can turn at most once at a node (going down the left child and the right child).</p>
+<p>Example:</p>
+<pre>      5
+     / \
+    4   5
+   / \   \
+  1   1   5</pre>
+<p>Output: 2 (the path 5 → 5 → 5 along the right side).</p>
+<p><b>Recall first</b> (answer before reading on):</p>
+<ol>
+<li>What is the brute force, and what does it cost?</li>
+<li>What is the key observation that lets you do it in one traversal?</li>
+<li>What time and space complexity should you aim for?</li>
+</ol>
+<hr class="ans">
+<h3>Answer</h3>
+<p><b>Approach.</b> Brute force: for every node, compute the longest same-value path through it by walking down both sides separately, which is O(n²) on a skewed tree. The key observation is that a post-order DFS can return, for each node, the longest same-value path going <i>down</i> from it (a single branch). At each node, the left arm extends only if the left child has the same value, likewise the right arm. The best path <i>through</i> this node is left arm + right arm, which updates a global maximum; the value returned to the parent is the longer of the two arms.</p>
+<pre>best = 0
+def dfs(node):
+    if node is null: return 0
+    L = dfs(node.left)
+    R = dfs(node.right)
+    leftArm  = L + 1 if node.left  and node.left.val  == node.val else 0
+    rightArm = R + 1 if node.right and node.right.val == node.val else 0
+    best = max(best, leftArm + rightArm)
+    return max(leftArm, rightArm)
+dfs(root)
+return best</pre>
+<p><b>Complexity:</b> Time O(n), each node visited once. Space O(h) for the recursion stack, where h is the tree height (O(n) worst case, O(log n) balanced).</p>
+<hr>
 <h2>math</h2>
 <p class="when">Fri 27 Nov, 23:57</p>
 <h3>Friday: Fermi estimation</h3>
@@ -64,37 +98,6 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 <hr class="ans">
 <h3>Answer</h3>
 <p>k is positive: ignored alerts breed more ignored alerts, so the problem compounds. To flip the sign, make every alert actionable and owned. Delete or tune any alert that no one acts on, and require a response for the rest. Fewer, trusted alerts mean a missed one gets noticed and corrected, so deviation shrinks (k&lt;0).</p>
-<hr>
-<h2>ios</h2>
-<p class="when">Fri 27 Nov, 23:56</p>
-<h3>Friday: Debugging and production (launch watchdog regression)</h3>
-<p><b>Why this matters:</b> Watchdog terminations at launch never show up as normal crashes in your SDK dashboard, so a regression can quietly churn users for days. On older devices a few hundred milliseconds of extra main-thread work at launch can turn into a kill rate that tanks retention.</p>
-<p><b>Scenario:</b> Version 7.3 is at 20% of a phased release. Xcode Organizer shows <code>0x8badf00d</code> terminations up 4x, concentrated on A12-class devices with large datasets. You can't reproduce it locally. The release added a synchronous keychain-to-SQLite token migration in <code>application(_:didFinishLaunchingWithOptions:)</code> and a new analytics SDK initialised at launch. Any fix needs a new binary, and expedited review is roughly 24 hours. Pausing the phased release leaves the 20% on the bad build.</p>
-<p><b>Recall first:</b></p>
-<ol>
-<li>Which data sources can locate the blocking frame without a repro?</li>
-<li>What does pausing a phased release actually stop, and what doesn't it stop?</li>
-<li>What would you do in the next hour and in the hotfix, and why?</li>
-</ol>
-<hr class="ans">
-<h3>Answer</h3>
-<p><b>Decision:</b> Pause the phased release now. Pull the <code>MXAppLaunchDiagnostic</code> and <code>MXHangDiagnostic</code> call stacks from MetricKit, plus the Organizer termination logs, to confirm the frame. If the SDK init is remotely gateable, kill it with a flag. In the hotfix, move the migration off the main thread behind an async gate and request expedited review.</p>
-<p><b>Rejected:</b></p>
-<ul>
-<li>Removing the app from sale: it hits everyone.</li>
-<li>Waiting for a repro: the field data already contains the stack.</li>
-<li>Full rollback: the App Store doesn't support it.</li>
-</ul>
-<p><b>Main risk:</b> Once the migration is async, code can read tokens before the migration finishes, which causes spurious logouts.</p>
-<p><b>Common mistake:</b> Assuming the pause protects users. It only stops automatic updates. Manual updates and new installs still get 7.3.</p>
-<pre>actor TokenStore {
-    private var ready: Task&lt;Void, Error&gt;?
-    func start() { ready = Task.detached(priority: .userInitiated) { try Migrator.run() } }
-    func token() async throws -&gt; String {
-        try await ready?.value
-        return try read()
-    }
-}</pre>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
