@@ -98,7 +98,7 @@ log "notes from ${RAW%%$'\n'*}"
 
 # --- 2. Claude ---
 TODAY="$(date '+%A %d %B %Y')"
-PROMPT="Today is $TODAY. You are producing today's '$SLOT' micro-session for an iOS software engineer. Below are the notes from the calendar event; follow them exactly. Do not open links or use tools; rely on the notes and your own knowledge. If the notes ask for a daily item, pick today's item fresh. Reply in Markdown with only the content to publish: a short title line (##), then the session, under 300 words. Put any answer or check at the very end after a line that says 'Answer:'.
+PROMPT="Today is $TODAY. You are producing today's '$SLOT' micro-session for a curious generalist who wants to think more clearly about engineering, finance, business and everyday decisions. Below are the notes from the calendar event; follow them exactly. Do not open links or use tools; rely on the notes and your own knowledge. If the notes ask for a daily item, pick today's item fresh. Reply in Markdown with only the content to publish: a short title line (##), then the session, under 300 words. Put any answer or check at the very end after a line that says 'Answer:'.
 
 --- CALENDAR NOTES ---
 $NOTES"
