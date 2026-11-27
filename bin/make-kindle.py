@@ -26,12 +26,16 @@ pre { border: 1px solid #000; padding: 8px; font-size: 0.8em; white-space: pre-w
 code { font-family: Courier, monospace; font-size: 0.9em; }
 .when { font-size: 0.8em; margin: 0 0 8px 0; }
 hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
+hr.ans { border-top: 1px dashed #000; margin: 16px 0 4px 0; }
+blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
+.foot { margin-top: 32px; font-size: 0.8em; }
 </style>
 </head>
 <body>
 <h1>The Feed</h1>
 <p class="when">Updated __UPDATED__</p>
 __BODY__
+<p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
 """
@@ -51,7 +55,12 @@ def inline(t):
 
 
 def markdown(src):
-    out, para, buf, lst, code = [], [], [], None, False
+    out, para, buf, quote, lst, code = [], [], [], [], None, False
+
+    def flush_quote():
+        if quote:
+            out.append("<blockquote>" + inline(" ".join(quote)) + "</blockquote>")
+            quote.clear()
 
     def flush_para():
         if para:
@@ -66,6 +75,7 @@ def markdown(src):
 
     for line in src.replace("\r", "").split("\n"):
         if line.startswith("```"):
+            flush_quote()
             if code:
                 out.append("<pre>" + esc("\n".join(buf)) + "</pre>")
                 buf.clear()
@@ -78,6 +88,13 @@ def markdown(src):
         if code:
             buf.append(line)
             continue
+        q = re.match(r"^\s*>\s?(.*)$", line)
+        if q:
+            flush_para()
+            close_list()
+            quote.append(q.group(1).strip())
+            continue
+        flush_quote()
         h = re.match(r"^(#{1,3})\s+(.*)$", line)
         ul = re.match(r"^\s*[-*]\s+(.*)$", line)
         ol = re.match(r"^\s*\d+[.)]\s+(.*)$", line)
@@ -101,9 +118,30 @@ def markdown(src):
             para.append(line.strip())
     if code:
         out.append("<pre>" + esc("\n".join(buf)) + "</pre>")
+    flush_quote()
     flush_para()
     close_list()
     return "\n".join(out)
+
+
+ANSWER = re.compile(r"^\s*(\*\*)?Answer:(\*\*)?\s*", re.I)
+
+
+def session(src):
+    """Render a session, with everything after the last 'Answer:' line (outside code) below a divider."""
+    lines, code, at = src.replace("\r", "").split("\n"), False, -1
+    for i, l in enumerate(lines):
+        if l.startswith("```"):
+            code = not code
+        elif not code and ANSWER.match(l):
+            at = i
+    if at < 0:
+        return markdown(src)
+    answer = "\n".join([ANSWER.sub("", lines[at])] + lines[at + 1:]).strip()
+    html = markdown("\n".join(lines[:at]))
+    if answer:
+        html += '\n<hr class="ans">\n<h3>Answer</h3>\n' + markdown(answer)
+    return html
 
 
 def when(iso):
@@ -122,7 +160,7 @@ def main():
     parts = []
     for e in latest:
         parts.append(
-            "<h2>%s</h2>\n<p class=\"when\">%s</p>\n%s" % (esc(e["slot"]), esc(when(e["time"])), markdown(e["text"]))
+            "<h2>%s</h2>\n<p class=\"when\">%s</p>\n%s" % (esc(e["slot"]), esc(when(e["time"])), session(e["text"]))
         )
     body = "\n<hr>\n".join(parts) if parts else "<p>No entries yet.</p>"
     updated = when(latest[0]["time"]) if latest else "never"

@@ -16,6 +16,9 @@ pre { border: 1px solid #000; padding: 8px; font-size: 0.8em; white-space: pre-w
 code { font-family: Courier, monospace; font-size: 0.9em; }
 .when { font-size: 0.8em; margin: 0 0 8px 0; }
 hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
+hr.ans { border-top: 1px dashed #000; margin: 16px 0 4px 0; }
+blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
+.foot { margin-top: 32px; font-size: 0.8em; }
 </style>
 </head>
 <body>
@@ -40,7 +43,8 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 <h3>Self-check (about 2 minutes)</h3>
 <p>Run your code against <code>[(0,1), (1,2), (2,0)]</code>. Which call to <code>union</code> returns <code>false</code>, and what does that tell you?</p>
 <p>---</p>
-<p>Answer:</p>
+<hr class="ans">
+<h3>Answer</h3>
 <ol>
 <li><code>find(x)</code> returns the root (representative) of x's set. <code>union(a, b)</code> merges the two sets that contain a and b.</li>
 <li>During <code>find</code>, every node on the path gets pointed straight at the root, so later lookups are faster.</li>
@@ -91,7 +95,8 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 <p><b>Why it matters</b></p>
 <p>A per-event metric can look excellent while users have a poor time. "99.8%" sounds great, but users count months, not sessions. Use the same check for flaky tests in CI: a test that fails 1% of the time, across 50 test runs a day, fails at least once on about 40% of days.</p>
 <p><b>Try it</b> before you scroll: get a rough estimate with the shortcut, then the exact value.</p>
-<p>Answer:</p>
+<hr class="ans">
+<h3>Answer</h3>
 <ol>
 <li>n·p = 90 × 0.002 = 0.18, so the shortcut says about 18%. Exact: 1 − 0.998^90 ≈ 1 − e^(−0.180) ≈ 1 − 0.835 = <b>about 16.5%</b>, roughly 1 user in 6 sees a crash each month.</li>
 <li>Solve 1 − (1 − p)^90 = 0.05. The shortcut gives p ≈ 0.05 / 90 ≈ 0.056%. Exact: p = 1 − 0.95^(1/90) ≈ <b>0.057%</b>, which means a crash-free session rate of about <b>99.94%</b>. That is about 3.5× fewer crashes per session than today.</li>
@@ -115,7 +120,8 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 <li>For U(x) = x⁴ − 2x², find the equilibria and classify each one.</li>
 <li>Pick one habit or system you rely on this week. Is it a bowl or a hilltop? What one change would add a restoring force?</li>
 </ol>
-<p><b>Answer:</b></p>
+<hr class="ans">
+<h3>Answer</h3>
 <ol>
 <li>U'(x) = 4x³ − 4x = 4x(x² − 1) = 0 → x = 0, ±1.</li>
 </ol>
@@ -128,5 +134,6 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 <ol>
 <li>A good answer names the disturbance (a missed day, a sick teammate, a bad merge) and a mechanism that automatically pushes things back: a default, a check, a fallback or a smaller minimum version.</li>
 </ol>
+<p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
