@@ -20,7 +20,35 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Fri 27 Nov, 11:15</p>
+<p class="when">Updated Fri 27 Nov, 11:25</p>
+<h2>math</h2>
+<p class="when">Fri 27 Nov, 11:25</p>
+<h3>Friday Math: The Crash-Free Illusion</h3>
+<p><b>Today's tool: #4, P(at least one) = 1 − (1 − p)^n</b></p>
+<p>A small per-try risk adds up over many tries. Your crash dashboard shows it per session, but users notice it over a whole month.</p>
+<p><b>Problem</b></p>
+<p>Your app has a <b>99.8% crash-free session rate</b>, so each session has p = 0.002 chance of crashing. A typical user opens the app <b>3 times a day for 30 days</b>.</p>
+<ol>
+<li>What is the chance that a typical user sees <b>at least one crash</b> this month?</li>
+<li>Product wants <b>no more than 5%</b> of users to see a crash in a month. What crash-free session rate do you need?</li>
+</ol>
+<p><b>Method</b></p>
+<ul>
+<li>Count the tries: n = 3 × 30 = 90 sessions.</li>
+<li>Work out the chance of no crash at all: (1 − p)^n.</li>
+<li>Subtract that from 1.</li>
+<li><b>Shortcut:</b> when n·p is small, the answer is close to n·p, just a little under it. That's a fast check you can do in your head.</li>
+<li>For part 2, run the formula backwards. Set the answer to 0.05 and solve for p. The shortcut gives p ≈ 0.05 / n.</li>
+</ul>
+<p><b>Why it matters</b></p>
+<p>A per-event metric can look excellent while users have a poor time. "99.8%" sounds great, but users count months, not sessions. Use the same check for flaky tests in CI: a test that fails 1% of the time, across 50 test runs a day, fails at least once on about 40% of days.</p>
+<p><b>Try it</b> before you scroll: get a rough estimate with the shortcut, then the exact value.</p>
+<p>Answer:</p>
+<ol>
+<li>n·p = 90 × 0.002 = 0.18, so the shortcut says about 18%. Exact: 1 − 0.998^90 ≈ 1 − e^(−0.180) ≈ 1 − 0.835 = <b>about 16.5%</b>, roughly 1 user in 6 sees a crash each month.</li>
+<li>Solve 1 − (1 − p)^90 = 0.05. The shortcut gives p ≈ 0.05 / 90 ≈ 0.056%. Exact: p = 1 − 0.95^(1/90) ≈ <b>0.057%</b>, which means a crash-free session rate of about <b>99.94%</b>. That is about 3.5× fewer crashes per session than today.</li>
+</ol>
+<hr>
 <h2>physics</h2>
 <p class="when">Fri 27 Nov, 11:15</p>
 <h3>Day Drill: Equilibrium &amp; Stability: Is It a Bowl or a Hilltop?</h3>
@@ -100,37 +128,5 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 <li><b>Previous smaller:</b> pop while <code>temps[top] &gt;= t</code>. After popping, the top of the stack is the answer for <code>i</code>.</li>
 <li><b>Circular array:</b> loop <code>i</code> from <code>0</code> to <code>2n - 1</code> and read <code>nums[i % n]</code>. Push indices only during the first pass (<code>i &lt; n</code>).</li>
 </ul>
-<hr>
-<h2>math</h2>
-<p class="when">Thu 26 Nov, 11:25</p>
-<h3>Thursday Math: Will a Rare Crash Ever Reach This User?</h3>
-<p><b>Tool of the day: #4 — P(at least one) = 1 − (1 − p)^n</b></p>
-<p>A low chance per try still adds up over many tries. To find the odds that something happens at least once, work out the odds that it never happens and subtract that from 1.</p>
-<p><b>Shortcut:</b> when p is small, (1 − p)^n ≈ e^(−np). So P(at least one) ≈ 1 − e^(−np)</p>
-<p>Useful values of e^(−x):</p>
-<ul>
-<li>x = 0.5 → 0.61</li>
-<li>x = 0.7 → 0.50</li>
-<li>x = 1 → 0.37</li>
-<li>x = 2 → 0.14</li>
-<li>x = 3 → 0.05</li>
-</ul>
-<p><b>Today's problem</b></p>
-<p>Your app crashes in 0.2% of sessions. Crashlytics calls that "99.8% crash-free," and the dashboard is green.</p>
-<p>A typical engaged user opens the app 10 times a day.</p>
-<ol>
-<li>What's the chance this user hits <b>at least one crash in a month</b> (30 days)?</li>
-<li>After about how many sessions does the user reach <b>50/50 odds</b> of having seen a crash?</li>
-<li>Bonus: you cut the crash rate in half, to 0.1%. What's the new monthly chance from part 1?</li>
-</ol>
-<p>Do it in your head with the e^(−x) table above. No calculator.</p>
-<p><b>Why it matters:</b> "Crash-free sessions" and "crash-free users" can tell very different stories. Your heaviest users, often the ones who write reviews, live in the second number.</p>
-<p>---</p>
-<p>Answer:</p>
-<ol>
-<li>n = 300 sessions and p = 0.002, so np = 0.6. That gives 1 − e^(−0.6) ≈ 1 − 0.55 ≈ <b>45%</b>. Close to a coin flip, even with a 99.8% crash-free rate.</li>
-<li>You need e^(−np) = 0.5, so np ≈ 0.69 and n ≈ 0.69 / 0.002 ≈ <b>347 sessions</b>, or about 35 days. (This is the same 0.69 behind the Rule of 72.)</li>
-<li>np = 0.3, so 1 − e^(−0.3) ≈ 1 − 0.74 ≈ <b>26%</b>. Halving the crash rate takes the monthly chance from about 45% to about 26%, a drop of roughly 40% rather than half. The curve flattens as np grows, so for heavy users the improvement looks smaller than the rate change suggests.</li>
-</ol>
 </body>
 </html>
