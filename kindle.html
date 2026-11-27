@@ -26,6 +26,35 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 <p class="when">Updated Fri 27 Nov, 23:42</p>
 <h2>ios</h2>
 <p class="when">Fri 27 Nov, 23:42</p>
+<h3>Friday: Debugging and production (silent memory kills)</h3>
+<p><b>Why this matters:</b> Jetsam kills leave no crash report, so a memory regression can look like a dashboard that has gone quiet. Users only see "the app keeps restarting." At scale, foreground OOMs damage retention long before anyone files a ticket.</p>
+<p><b>Scenario:</b> Last week you shipped a new image decoding pipeline behind a flag, rolled out to 20% of users. Crash-free rate is flat. MetricKit <code>MXAppExitMetric</code> now shows foreground memory-limit exits up 3x in the flagged cohort, mostly on 3 GB devices on long feed sessions. You can't reproduce it on your own device. The image pipeline also cut scroll hitches by 40%, and product wants it at 100% by Wednesday. <b>Constraint:</b> you can't ship a diagnostic build before Monday's release train, and turning the flag off for everyone throws away the hitch win.</p>
+<p><b>Recall first:</b></p>
+<ol>
+<li>What do you do with the flag today, and why?</li>
+<li>Which signals tell a leak apart from a high-water-mark spike?</li>
+<li>How do you reproduce a 3 GB device's memory limit on your own hardware?</li>
+</ol>
+<p>---</p>
+<hr class="ans">
+<h3>Answer</h3>
+<p><b>Decision:</b> Hold rollout at 20% and add a device-class targeting rule so devices with ≤3 GB of RAM get the old pipeline. Ship nothing new. Reproduce on a matching device: record an Allocations + VM Tracker trace over a 15-minute scripted scroll, and add <code>os_proc_available_memory()</code> breadcrumbs to the next build's telemetry.</p>
+<p><b>Rejected:</b></p>
+<ul>
+<li><i>Full kill:</i> discards a real win to protect a minority of devices that the targeting rule already shields.</li>
+<li><i>Push to 100% and fix forward:</i> silent kills grow with the rollout and you get no stack traces.</li>
+</ul>
+<p><b>Main risk:</b> It may be a footprint spike rather than a leak. Decoded bitmaps cost width × height × 4 bytes, so concurrent full-size decodes during a fast fling can peak above the limit even though memory looks flat later.</p>
+<p><b>Common mistake:</b> Watching the Xcode memory gauge or <code>resident_size</code>. Jetsam uses <code>phys_footprint</code>, which includes IOSurface and compressed memory. Also, trimming caches on memory warnings doesn't help here, because a burst of decodes can hit the limit before any warning arrives.</p>
+<pre>// Downsample at decode time; never decode full-size for a thumbnail.
+let opts: [CFString: Any] = [
+  kCGImageSourceCreateThumbnailFromImageAlways: true,
+  kCGImageSourceThumbnailMaxPixelSize: maxPx,
+  kCGImageSourceShouldCacheImmediately: true
+]</pre>
+<hr>
+<h2>ios</h2>
+<p class="when">Fri 27 Nov, 23:42</p>
 <h3>Friday: Debugging and Production</h3>
 <p><b>Why it matters:</b> A launch watchdog kill gets no crash handler and leaves no breadcrumb in most crash SDKs, so it can sit unnoticed while it drains retention. At scale, a 1% launch failure rate on older devices means hundreds of thousands of users who see an app that "just closes".</p>
 <p><b>Scenario:</b> Version 4.8 is at day 3 of a phased release. Xcode Organizer shows <code>0x8badf00d</code> launch terminations up 5x. They are almost all on A12/A13 devices, and the rate is still climbing. The diff has two suspects: a heavyweight Core Data migration and a new analytics SDK that starts in <code>didFinishLaunching</code> behind a remote flag. The flag value is read from cache at launch and refreshed after the first screen appears. A hotfix needs at least 48 hours, even with expedited review.</p>
@@ -84,33 +113,6 @@ while queue not empty:
         if node.right: queue.push(node.right)
 return level_sum</pre>
 <p><b>Complexity.</b> Time is O(n), since each node is visited once. Space is O(w) for BFS, where w is the maximum width of the tree (up to n/2 for a complete tree). The DFS version uses O(h) for the recursion stack, where h is the height.</p>
-<hr>
-<h2>math</h2>
-<p class="when">Fri 27 Nov, 23:25</p>
-<h3>Friday: Fermi Estimation</h3>
-<p>Break a number you can't know into 3–5 factors you can roughly guess, then multiply them. Round each factor to an easy number. The errors tend to cancel out, so you usually land within a factor of 2–3 of the true value.</p>
-<p><b>Problem</b></p>
-<p>Your team's API serves about <b>50 requests per second</b>, all day, every day. Each request writes about <b>4 log lines</b> of about <b>250 bytes</b> each. Logs are kept for <b>30 days</b>, and storage costs about <b>$0.10 per GB per month</b>.</p>
-<p>Roughly how much does storing these logs cost each month? Then a manager proposes logging <b>20 lines per request</b> "for better debugging." What would the bill become?</p>
-<p><b>Try it first</b></p>
-<ul>
-<li>Round seconds in a day to a power of ten.</li>
-<li>Get bytes per day first, then the total held at any moment under 30-day retention.</li>
-<li>The second question doesn't need a fresh calculation from scratch.</li>
-</ul>
-<p><b>Why it matters:</b> Fermi estimates let you size a cloud bill, a market or a hiring plan in two minutes. They also show you which factor is worth checking before anyone signs off.</p>
-<hr class="ans">
-<h3>Answer</h3>
-<ul>
-<li>Seconds per day: 86,400 ≈ 10⁵</li>
-<li>Requests per day: 50 × 10⁵ = 5 × 10⁶</li>
-<li>Bytes per request: 4 × 250 = 1,000 B ≈ 1 KB</li>
-<li>Data per day: 5 × 10⁶ × 1 KB = 5 × 10⁹ B ≈ <b>5 GB/day</b></li>
-<li>Held at any time (30-day retention): 5 × 30 = <b>150 GB</b></li>
-<li>Monthly cost: 150 × $0.10 ≈ <b>$15/month</b></li>
-</ul>
-<p>With exact figures (86,400 s gives 4.32 GB/day and about 130 GB stored), the bill is about <b>$13</b>, close to the estimate.</p>
-<p>With 20 lines per request, every byte count is 5× larger: about 750 GB stored, so about <b>$75/month</b>. Storage alone is still cheap. Search and indexing tools usually charge per GB <i>ingested</i>, which is a 5× jump from 5 to 25 GB/day, so that's the factor to check first.</p>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
