@@ -23,7 +23,29 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Fri 27 Nov, 22:12</p>
+<p class="when">Updated Fri 27 Nov, 23:11</p>
+<h2>physics</h2>
+<p class="when">Fri 27 Nov, 23:11</p>
+<h3>Friday: Feedback Loops, dx/dt = kx</h3>
+<p><b>The idea:</b> A feedback loop is any system where the output feeds back into its own rate of change. If k &gt; 0, growth makes more growth (compounding). If k &lt; 0, the system pulls itself back toward a set point (stabilizing).</p>
+<p><b>Question for today:</b> Your iOS project has 20 flaky UI tests. Because people re-run failed builds and don't fix them, the count grows about 5% per week. How many flaky tests will there be in 12 weeks? Roughly how long until the count doubles?</p>
+<p><b>Real-life application (software engineering): retry storms</b></p>
+<ul>
+<li>When the backend slows down, every app instance retries right away. The extra load slows the server further, which causes more retries. That is k &gt; 0.</li>
+<li>Exponential backoff with jitter plus a circuit breaker turns this into k &lt; 0: the more failures there are, the fewer requests clients send, so the server can recover.</li>
+<li>Check your <code>URLSession</code> retry logic today. Ask whether a failure makes the next request more likely or less likely.</li>
+</ul>
+<p><b>2-minute exercise:</b></p>
+<ol>
+<li>Write down one loop in your current week, such as code review backlog, sleep and focus, or tech debt.</li>
+<li>Mark its sign: <b>+</b> (compounds) or <b>−</b> (stabilizes).</li>
+<li>Name one lever that would flip a harmful <b>+</b> into a <b>−</b>, or strengthen a helpful <b>+</b>.</li>
+</ol>
+<p>Log it: date, concept, my answer, what I applied.</p>
+<hr class="ans">
+<h3>Answer</h3>
+<p>N(12) = 20 × 1.05¹² ≈ 20 × 1.80 ≈ <b>36 flaky tests</b>. Doubling time ≈ 70 / 5 = <b>about 14 weeks</b> (rule of 70). To flip the sign to k &lt; 0, make a flaky failure cost something. For example, auto-quarantine the test and open a ticket instead of allowing a silent re-run. Then each failure leads to a fix, and the count goes down.</p>
+<hr>
 <h2>physics</h2>
 <p class="when">Fri 27 Nov, 22:12</p>
 <h3>Signal vs Noise: Don't Trust One Launch</h3>
@@ -88,35 +110,6 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
     }
 }</pre>
 <p><b>Self-check:</b> <code>union(2, 0)</code> returns <code>false</code>. Nodes 0 and 2 were already connected through 1, so the edge (2,0) closes a cycle.</p>
-<hr>
-<h2>math</h2>
-<p class="when">Fri 27 Nov, 11:25</p>
-<h3>Friday Math: The Crash-Free Illusion</h3>
-<p><b>Today's tool: #4, P(at least one) = 1 − (1 − p)^n</b></p>
-<p>A small per-try risk adds up over many tries. Your crash dashboard shows it per session, but users notice it over a whole month.</p>
-<p><b>Problem</b></p>
-<p>Your app has a <b>99.8% crash-free session rate</b>, so each session has p = 0.002 chance of crashing. A typical user opens the app <b>3 times a day for 30 days</b>.</p>
-<ol>
-<li>What is the chance that a typical user sees <b>at least one crash</b> this month?</li>
-<li>Product wants <b>no more than 5%</b> of users to see a crash in a month. What crash-free session rate do you need?</li>
-</ol>
-<p><b>Method</b></p>
-<ul>
-<li>Count the tries: n = 3 × 30 = 90 sessions.</li>
-<li>Work out the chance of no crash at all: (1 − p)^n.</li>
-<li>Subtract that from 1.</li>
-<li><b>Shortcut:</b> when n·p is small, the answer is close to n·p, just a little under it. That's a fast check you can do in your head.</li>
-<li>For part 2, run the formula backwards. Set the answer to 0.05 and solve for p. The shortcut gives p ≈ 0.05 / n.</li>
-</ul>
-<p><b>Why it matters</b></p>
-<p>A per-event metric can look excellent while users have a poor time. "99.8%" sounds great, but users count months, not sessions. Use the same check for flaky tests in CI: a test that fails 1% of the time, across 50 test runs a day, fails at least once on about 40% of days.</p>
-<p><b>Try it</b> before you scroll: get a rough estimate with the shortcut, then the exact value.</p>
-<hr class="ans">
-<h3>Answer</h3>
-<ol>
-<li>n·p = 90 × 0.002 = 0.18, so the shortcut says about 18%. Exact: 1 − 0.998^90 ≈ 1 − e^(−0.180) ≈ 1 − 0.835 = <b>about 16.5%</b>, roughly 1 user in 6 sees a crash each month.</li>
-<li>Solve 1 − (1 − p)^90 = 0.05. The shortcut gives p ≈ 0.05 / 90 ≈ 0.056%. Exact: p = 1 − 0.95^(1/90) ≈ <b>0.057%</b>, which means a crash-free session rate of about <b>99.94%</b>. That is about 3.5× fewer crashes per session than today.</li>
-</ol>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
