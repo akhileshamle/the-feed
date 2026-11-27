@@ -23,7 +23,19 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Fri 27 Nov, 23:56</p>
+<p class="when">Updated Fri 27 Nov, 23:57</p>
+<h2>physics</h2>
+<p class="when">Fri 27 Nov, 23:57</p>
+<h3>Friday: Feedback loops (dx/dt = kx; k&gt;0 compounds, k&lt;0 stabilizes)</h3>
+<p><b>The idea:</b> A feedback loop means the current size of something changes its own rate of growth. When k&gt;0, more begets more (compounding, runaway). When k&lt;0, any drift away from a target triggers a push back toward it (a thermostat).</p>
+<p><b>Question:</b> A team's on-call alerts create fatigue. Each unresolved alert causes people to ignore the next ones, which leads to more unresolved alerts. Is k positive or negative? What single change flips its sign?</p>
+<p><b>Real-life application (software engineering):</b> Test suites with flaky tests. A flaky failure teaches people to re-run instead of investigate, so they trust the suite less, write fewer tests, and the flakiness goes unfixed, which creates more flakes. Teams that quarantine a flaky test within 24 hours turn k negative: the failure gets a fast, forced response, and the suite pulls back toward healthy.</p>
+<p><b>2-minute exercise:</b> Pick one loop in your life right now (sleep, inbox, savings, a codebase). Write two lines: "More X causes more Y, which causes more X" and where the loop currently sits (k&gt;0 or k&lt;0). Then name one lever that would flip it.</p>
+<p><b>Log it:</b> date, concept, my answer, what I applied.</p>
+<hr class="ans">
+<h3>Answer</h3>
+<p>k is positive: ignored alerts breed more ignored alerts, so the problem compounds. To flip the sign, make every alert actionable and owned. Delete or tune any alert that no one acts on, and require a response for the rest. Fewer, trusted alerts mean a missed one gets noticed and corrected, so deviation shrinks (k&lt;0).</p>
+<hr>
 <h2>ios</h2>
 <p class="when">Fri 27 Nov, 23:56</p>
 <h3>Friday: Debugging and production (launch watchdog regression)</h3>
@@ -83,32 +95,6 @@ let opts: [CFString: Any] = [
   kCGImageSourceThumbnailMaxPixelSize: maxPx,
   kCGImageSourceShouldCacheImmediately: true
 ]</pre>
-<hr>
-<h2>ios</h2>
-<p class="when">Fri 27 Nov, 23:42</p>
-<h3>Friday: Debugging and Production</h3>
-<p><b>Why it matters:</b> A launch watchdog kill gets no crash handler and leaves no breadcrumb in most crash SDKs, so it can sit unnoticed while it drains retention. At scale, a 1% launch failure rate on older devices means hundreds of thousands of users who see an app that "just closes".</p>
-<p><b>Scenario:</b> Version 4.8 is at day 3 of a phased release. Xcode Organizer shows <code>0x8badf00d</code> launch terminations up 5x. They are almost all on A12/A13 devices, and the rate is still climbing. The diff has two suspects: a heavyweight Core Data migration and a new analytics SDK that starts in <code>didFinishLaunching</code> behind a remote flag. The flag value is read from cache at launch and refreshed after the first screen appears. A hotfix needs at least 48 hours, even with expedited review.</p>
-<p><b>Recall first</b></p>
-<ol>
-<li>Why can't the kill switch help the users who are hurt most?</li>
-<li>How do you get the main-thread stack when you can't reproduce the kill locally?</li>
-<li>What would you do in the next hour, and why?</li>
-</ol>
-<hr class="ans">
-<h3>Answer</h3>
-<p><b>Decision:</b> Pause the phased release now and flip the flag off anyway, since that helps users who haven't failed yet. Then pull the main-thread stacks from the watchdog reports in Organizer and from <code>MXAppLaunchDiagnostic</code> in MetricKit. If the stacks show a synchronous migration on the main thread, that is a crash loop: the watchdog kills the app mid-migration, so it restarts on every launch. Ship a hotfix that renders UI first and migrates in the background.</p>
-<pre>container.persistentStoreDescriptions.first?.shouldAddStoreAsynchronously = true
-showMigratingPlaceholder()
-container.loadPersistentStores { _, error in /* swap in real UI */ }</pre>
-<p><b>Rejected:</b></p>
-<ul>
-<li><i>Rolling back:</i> the App Store has no binary rollback.</li>
-<li><i>Flag only:</i> users killed during launch never reach the flag refresh.</li>
-<li><i>Local repro first:</i> the debugger turns off the watchdog, and fast devices hide the problem.</li>
-</ul>
-<p><b>Main risk:</b> Partially migrated stores. The hotfix must cope with a store that was interrupted mid-migration.</p>
-<p><b>Common mistake:</b> Measuring launch with Xcode attached, or on a current device, and declaring it fixed.</p>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
