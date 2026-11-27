@@ -24,6 +24,35 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 <body>
 <h1>The Feed</h1>
 <p class="when">Updated Fri 27 Nov, 23:57</p>
+<h2>math</h2>
+<p class="when">Fri 27 Nov, 23:57</p>
+<h3>Friday: Fermi estimation</h3>
+<p>Break an unknown quantity into 3-5 factors you can guess, then multiply them. Individual guesses may be off, but errors tend to partly cancel, so you land within a factor of 2-3 of the truth.</p>
+<p><b>Problem:</b> A coffee shop near a train station wants to know how many cups of coffee it must sell per year to justify a second espresso machine. First, estimate the cups a single busy city-centre café sells per year using these guesses:</p>
+<ul>
+<li>Customers per hour in open hours: 30</li>
+<li>Open hours per day: 10</li>
+<li>Share of customers who buy at least one coffee: 60%</li>
+<li>Open days per year: 350</li>
+</ul>
+<p>How many cups per year, roughly? Then, if each cup brings £1.80 gross margin, what is the yearly gross margin from coffee?</p>
+<p><b>Try it first:</b></p>
+<ul>
+<li>Multiply customers per day first, then the coffee share.</li>
+<li>Round to friendly numbers (e.g. 350 ≈ 3.5 x 100) and track powers of ten separately.</li>
+<li>Margin is just cups times £1.80; round £1.80 to £2 for a sanity check, then adjust.</li>
+</ul>
+<p><b>Why it matters:</b> Quick order-of-magnitude estimates let you sanity-check a business case, a capacity plan or a quote before anyone builds a spreadsheet.</p>
+<hr class="ans">
+<h3>Answer</h3>
+<ul>
+<li>Customers per day: 30 x 10 = 300</li>
+<li>Coffee buyers per day: 300 x 0.6 = 180 cups</li>
+<li>Per year: 180 x 350 = 63,000 cups</li>
+<li>Margin: 63,000 x £1.80 = £113,400 (sanity check: 63,000 x 2 = £126,000, slightly higher, as expected)</li>
+</ul>
+<p>So about 63,000 cups and roughly £110k gross margin per year.</p>
+<hr>
 <h2>physics</h2>
 <p class="when">Fri 27 Nov, 23:57</p>
 <h3>Friday: Feedback loops (dx/dt = kx; k&gt;0 compounds, k&lt;0 stabilizes)</h3>
@@ -66,35 +95,6 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
         return try read()
     }
 }</pre>
-<hr>
-<h2>ios</h2>
-<p class="when">Fri 27 Nov, 23:42</p>
-<h3>Friday: Debugging and production (silent memory kills)</h3>
-<p><b>Why this matters:</b> Jetsam kills leave no crash report, so a memory regression can look like a dashboard that has gone quiet. Users only see "the app keeps restarting." At scale, foreground OOMs damage retention long before anyone files a ticket.</p>
-<p><b>Scenario:</b> Last week you shipped a new image decoding pipeline behind a flag, rolled out to 20% of users. Crash-free rate is flat. MetricKit <code>MXAppExitMetric</code> now shows foreground memory-limit exits up 3x in the flagged cohort, mostly on 3 GB devices on long feed sessions. You can't reproduce it on your own device. The image pipeline also cut scroll hitches by 40%, and product wants it at 100% by Wednesday. <b>Constraint:</b> you can't ship a diagnostic build before Monday's release train, and turning the flag off for everyone throws away the hitch win.</p>
-<p><b>Recall first:</b></p>
-<ol>
-<li>What do you do with the flag today, and why?</li>
-<li>Which signals tell a leak apart from a high-water-mark spike?</li>
-<li>How do you reproduce a 3 GB device's memory limit on your own hardware?</li>
-</ol>
-<p>---</p>
-<hr class="ans">
-<h3>Answer</h3>
-<p><b>Decision:</b> Hold rollout at 20% and add a device-class targeting rule so devices with ≤3 GB of RAM get the old pipeline. Ship nothing new. Reproduce on a matching device: record an Allocations + VM Tracker trace over a 15-minute scripted scroll, and add <code>os_proc_available_memory()</code> breadcrumbs to the next build's telemetry.</p>
-<p><b>Rejected:</b></p>
-<ul>
-<li><i>Full kill:</i> discards a real win to protect a minority of devices that the targeting rule already shields.</li>
-<li><i>Push to 100% and fix forward:</i> silent kills grow with the rollout and you get no stack traces.</li>
-</ul>
-<p><b>Main risk:</b> It may be a footprint spike rather than a leak. Decoded bitmaps cost width × height × 4 bytes, so concurrent full-size decodes during a fast fling can peak above the limit even though memory looks flat later.</p>
-<p><b>Common mistake:</b> Watching the Xcode memory gauge or <code>resident_size</code>. Jetsam uses <code>phys_footprint</code>, which includes IOSurface and compressed memory. Also, trimming caches on memory warnings doesn't help here, because a burst of decodes can hit the limit before any warning arrives.</p>
-<pre>// Downsample at decode time; never decode full-size for a thumbnail.
-let opts: [CFString: Any] = [
-  kCGImageSourceCreateThumbnailFromImageAlways: true,
-  kCGImageSourceThumbnailMaxPixelSize: maxPx,
-  kCGImageSourceShouldCacheImmediately: true
-]</pre>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
