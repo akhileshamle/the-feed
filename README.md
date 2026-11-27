@@ -24,10 +24,12 @@ flowchart TD
     CL --> V{"reply starts<br/>with ## title?"}
     V -- no --> BAD["log 'bad response', stop"]
     V -- yes --> F["feed.json<br/>last 200 entries"]
+    F --> A["archive/YYYY-MM.json<br/>entries beyond 200"]
     F --> K["bin/make-kindle.py"]
     K --> KH["kindle.html"]
     F --> G["git commit, pull --rebase, push main"]
     KH --> G
+    A --> G
     G --> P["GitHub Pages"]
     P --> I["index.html<br/>reads feed.json"]
     P --> KP["kindle.html<br/>static page"]
@@ -40,7 +42,8 @@ flowchart TD
 
 - `index.html`: the page (reads `feed.json`); answers are hidden behind "Show answer"
 - `kindle.html`: generated on every run by `bin/make-kindle.py`; open https://akhileshamle.github.io/the-feed/kindle.html on a Kindle
-- `feed.json`: all entries, last 200 kept
+- `feed.json`: the latest 200 entries (what the page shows)
+- `archive/YYYY-MM.json`: older entries, moved out of `feed.json` by month instead of deleted
 - `bin/run-feed.sh`: one run: `bash bin/run-feed.sh <physics|math|dsa>`
 - `bin/make-kindle.py`: rebuilds `kindle.html` from `feed.json` (`python3 bin/make-kindle.py`)
 - `install.sh`: installs or removes the three daily launchd jobs

@@ -99,10 +99,31 @@ except Exception:
     data = {"entries": []}
 tz = datetime.datetime.now().astimezone()
 data["entries"].append({"slot": os.environ["SLOT"], "time": tz.isoformat(timespec="seconds"), "text": os.environ["RESPONSE"].strip()})
-data["entries"] = data["entries"][-200:]
-tmp = p + ".tmp"
-json.dump(data, open(tmp, "w"), ensure_ascii=False, indent=1)
-os.replace(tmp, p)
+KEEP = 200
+old, data["entries"] = data["entries"][:-KEEP], data["entries"][-KEEP:]
+
+def write(path, obj):
+    tmp = path + ".tmp"
+    json.dump(obj, open(tmp, "w"), ensure_ascii=False, indent=1)
+    os.replace(tmp, path)
+
+# Entries that fall off the page are filed by month in archive/ instead of being deleted.
+# Archive first, then trim, so a crash in between can only duplicate, never lose.
+by_month = {}
+for e in old:
+    by_month.setdefault(e["time"][:7], []).append(e)
+for month, items in by_month.items():
+    ap = os.path.join("archive", month + ".json")
+    os.makedirs("archive", exist_ok=True)
+    try:
+        have = json.load(open(ap)).get("entries", [])
+    except Exception:
+        have = []
+    seen = {(e["time"], e["slot"]) for e in have}
+    have += [e for e in items if (e["time"], e["slot"]) not in seen]
+    have.sort(key=lambda e: e["time"])
+    write(ap, {"entries": have})
+write(p, data)
 PY
 
 # Kindle page: a failure here must never block the main feed
@@ -111,6 +132,7 @@ python3 "$REPO/bin/make-kindle.py" >> "$LOG" 2>&1 || log "kindle page failed"
 # --- 4. publish ---
 if [ "${SKIP_PUSH:-0}" = "1" ]; then log "done (push skipped)"; exit 0; fi
 git add feed.json kindle.html
+[ -d archive ] && git add archive
 git commit -q -m "feed: $SLOT $(date '+%F %H:%M')" || { log "nothing to commit"; exit 0; }
 if ! git pull -q --rebase origin main >> "$LOG" 2>&1; then
   git rebase --abort 2>/dev/null || true
