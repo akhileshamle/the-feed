@@ -45,6 +45,8 @@ flowchart TD
 - `feed.json`: the latest 200 entries (what the page shows)
 - `archive/YYYY-MM.json`: older entries, moved out of `feed.json` by month instead of deleted
 - `bin/run-feed.sh`: one run: `bash bin/run-feed.sh <physics|math|dsa>`
+- `bin/archive-prompt.sh`: saves a slot's current Calendar note to `prompts/archive/<date>-<slot>.md`: `bash bin/archive-prompt.sh <physics|math|dsa>`
+- `prompts/archive/`: old Calendar notes (prompts), one dated file each; kept when a note is replaced (claude.ai artifact links are replaced by a placeholder, since the repo is public)
 - `bin/make-kindle.py`: rebuilds `kindle.html` from `feed.json` (`python3 bin/make-kindle.py`)
 - `install.sh`: installs or removes the three daily launchd jobs
 - `logs/`, `bin/feed.env`, `.lock`: local only, git-ignored
@@ -76,7 +78,7 @@ Run from `~/Developer/the-feed`.
 
 ## Changing things
 
-- **A prompt, every day:** edit the notes of the recurring event in the `claude-maxing` calendar and choose "All events".
+- **A prompt, every day:** first save the old note with `bash bin/archive-prompt.sh <slot>`, then edit the notes of the recurring event in the `claude-maxing` calendar and choose "All events".
 - **A prompt, one day only:** add a separate one-day event on that day in `claude-maxing`, with the slot keyword in the title (for example `/physics/maxing/special`) and the prompt in its notes. A one-day event that starts on the run's day wins over the recurring one; one-day events on other days are ignored. Delete it afterwards or leave it, since it only applies on its own day. `logs/run.log` shows which one a run used (`notes from recurring event` or `notes from one-day event of …`).
 - **Sync first:** the run reads whatever Calendar has locally, so edit the evening before rather than minutes before the run.
 - **A time:** edit the `JOBS` list in `install.sh`, then run `bash install.sh`.
