@@ -48,7 +48,7 @@ then log "already ran today (FORCE=1 to run again)"; exit 0; fi
 
 # --- 1. notes from Calendar ---
 # Which event wins: a one-day event that starts today (an override for today) first, otherwise the
-# recurring event ("all events" notes). One-day events on other days are ignored.
+# recurring event ("all events" notes; if the series was split, the newest one that has started). One-day events on other days are ignored.
 # FEED_DAY_OFFSET=1 pretends it is tomorrow (for testing only).
 RAW="$(osascript - "$CALENDAR_NAME" "$KEYWORD" "${FEED_DAY_OFFSET:-0}" <<'APPLESCRIPT'
 on run argv
@@ -70,7 +70,8 @@ on run argv
         if d is not missing value and d is not "" then
           set s to start date of ev
           if (recurrence of ev) is not missing value then
-            if recDate is missing value then
+            -- editing "this and future events" splits a series in two: the newest one that has begun wins
+            if s < dayEnd and (recDate is missing value or s > recDate) then
               set recNotes to d
               set recDate to s
             end if

@@ -25,14 +25,26 @@ NOTES="$(osascript - "$CALENDAR_NAME" "$KEYWORD" <<'APPLESCRIPT'
 on run argv
   set calName to item 1 of argv
   set kw to item 2 of argv
+  set dayEnd to (current date)
+  set time of dayEnd to 0
+  set dayEnd to dayEnd + 1 * days
   with timeout of 300 seconds
     tell application "Calendar"
       set evs to (every event of calendar calName whose summary contains kw)
+      set best to ""
+      set bestDate to missing value
       repeat with ev in evs
         set d to description of ev
-        if (recurrence of ev) is not missing value and d is not missing value and d is not "" then return d
+        if (recurrence of ev) is not missing value and d is not missing value and d is not "" then
+          set s to start date of ev
+          -- a series split by "this and future events": the newest one that has started wins
+          if s < dayEnd and (bestDate is missing value or s > bestDate) then
+            set best to d
+            set bestDate to s
+          end if
+        end if
       end repeat
-      return ""
+      return best
     end tell
   end timeout
 end run
