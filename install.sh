@@ -26,7 +26,10 @@ mkdir -p "$AGENTS" "$REPO/logs"
 # remember where claude lives so launchd can find it
 CLAUDE_PATH="$(command -v claude || true)"
 if [ -z "$CLAUDE_PATH" ]; then echo "claude CLI not found on PATH. Install it first, then re-run."; exit 1; fi
-printf 'CLAUDE_BIN=%q\n' "$CLAUDE_PATH" > "$REPO/bin/feed.env"
+# keep any other settings in feed.env (CLAUDE_MODEL, DEBUG, ...); only the CLAUDE_BIN line is rewritten
+touch "$REPO/bin/feed.env"
+{ grep -v '^CLAUDE_BIN=' "$REPO/bin/feed.env" || true; printf 'CLAUDE_BIN=%q\n' "$CLAUDE_PATH"; } > "$REPO/bin/feed.env.tmp"
+mv "$REPO/bin/feed.env.tmp" "$REPO/bin/feed.env"
 
 echo "$JOBS" | while read -r slot h m; do
   PLIST="$AGENTS/com.thefeed.$slot.plist"

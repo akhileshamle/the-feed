@@ -86,6 +86,14 @@ Run from `~/Developer/the-feed`.
 - **A new slot:** add a `case` branch in `bin/run-feed.sh` and a line in `JOBS`.
 - **Moved the folder or reinstalled Claude:** run `bash install.sh` again.
 
+## Cost
+
+Each run calls `claude -p` with a lean setup: no tools, skills, MCP servers or user plugins (`--tools "" --disable-slash-commands --strict-mcp-config --setting-sources project`). Without those flags every run loads about 90,000 tokens of plugin and skill context around a prompt of about 700 tokens; with them it is about 4,000.
+
+- Models: `sonnet` for physics, math and dsa; `opus` for ios. To change them, add `CLAUDE_MODEL=opus` or `CLAUDE_MODEL_IOS=sonnet` to `bin/feed.env` (kept when you re-run `install.sh`).
+- A run costs roughly 1 to 3 cents on Sonnet by the CLI's own estimate. Test runs cost the same, so use `SKIP_PUSH=1` and the once-a-day skip sparingly.
+- If a future Claude Code version drops one of the flags, the log shows `claude failed` and nothing is published.
+
 ## When something fails
 
 Look at `logs/run.log` and `logs/launchd-<slot>.err` first.

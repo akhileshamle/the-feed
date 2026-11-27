@@ -17,13 +17,15 @@ CALENDAR_NAME="${CALENDAR_NAME:-claude-maxing}"
 LOG="$REPO/logs/run.log"; mkdir -p "$REPO/logs"
 log() { echo "$(date '+%F %T') [$SLOT] $*" >> "$LOG"; }
 
-# who the session is written for; the ios slot is its own flavor
+# who the session is written for and which model writes it; the ios slot is its own flavor
+# (set CLAUDE_MODEL / CLAUDE_MODEL_IOS in bin/feed.env to change the models)
 AUDIENCE="a curious generalist who wants to think more clearly about engineering, finance, business and everyday decisions"
+MODEL="${CLAUDE_MODEL:-sonnet}"
 case "$SLOT" in
   physics) KEYWORD="physics/maxing" ;;
   math)    KEYWORD="math/maxing" ;;
   dsa)     KEYWORD="dsa/maxing" ;;
-  ios)     KEYWORD="ios/maxing"; AUDIENCE="a senior iOS software engineer" ;;
+  ios)     KEYWORD="ios/maxing"; AUDIENCE="a senior iOS software engineer"; MODEL="${CLAUDE_MODEL_IOS:-opus}" ;;
   *) echo "unknown slot: $SLOT" >&2; exit 2 ;;
 esac
 
@@ -106,7 +108,8 @@ PROMPT="Today is $TODAY. You are producing today's '$SLOT' micro-session for $AU
 --- CALENDAR NOTES ---
 $NOTES"
 
-RESPONSE="$(printf '%s' "$PROMPT" | "$CLAUDE_BIN" -p --tools "" 2>>"$LOG")" || { log "claude failed"; exit 1; }
+# lean run: no tools, skills, MCP servers or user plugins (they add ~90k tokens of context to every run)
+RESPONSE="$(printf '%s' "$PROMPT" | "$CLAUDE_BIN" -p --tools "" --model "$MODEL" --disable-slash-commands --strict-mcp-config --setting-sources project --no-session-persistence 2>>"$LOG")" || { log "claude failed"; exit 1; }
 if [ -z "${RESPONSE// /}" ]; then log "empty response"; exit 1; fi
 # a real session starts with a Markdown title; anything else (CLI error, login notice) must not go public
 FIRST_LINE="$(printf '%s\n' "$RESPONSE" | grep -m1 -v '^[[:space:]]*$' || true)"
