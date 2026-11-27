@@ -24,6 +24,41 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 <body>
 <h1>The Feed</h1>
 <p class="when">Updated Fri 27 Nov, 23:25</p>
+<h2>dsa</h2>
+<p class="when">Fri 27 Nov, 23:25</p>
+<h3>Friday: Trees (DFS, BFS, recursion)</h3>
+<p><b>When to reach for this pattern:</b> Use it when the data is hierarchical and each node's answer depends on its children, its parent, or its depth.</p>
+<p><b>Problem: Deepest Leaves Sum</b> You are given the root of a binary tree. Return the sum of the values of all nodes on the deepest level.</p>
+<p>Example:</p>
+<pre>        1
+       / \
+      2   3
+     / \   \
+    4   5   6
+   /         \
+  7           8</pre>
+<p>The deepest level is level 4, which holds nodes 7 and 8. Output: <code>15</code>.</p>
+<p><b>Recall first</b></p>
+<ol>
+<li>What is the brute force? (Hint: two passes.)</li>
+<li>What is the key observation that lets one pass do the job?</li>
+<li>What time and space should you aim for, and what does space depend on?</li>
+</ol>
+<hr class="ans">
+<h3>Answer</h3>
+<p><b>Approach.</b> The brute force takes two passes: one DFS to find the maximum depth, then a second DFS that adds up the nodes at that depth. The key observation is that a level-order BFS handles the tree one full level at a time. Keep a running sum for the current level and reset it at the start of each level. When the queue empties, the last level's sum is the answer. A one-pass DFS also works: carry the depth down, and whenever you reach a depth greater than the best so far, reset the sum.</p>
+<pre>if root is null: return 0
+queue = [root]
+while queue not empty:
+    level_sum = 0
+    repeat len(queue) times:
+        node = queue.pop_front()
+        level_sum += node.val
+        if node.left:  queue.push(node.left)
+        if node.right: queue.push(node.right)
+return level_sum</pre>
+<p><b>Complexity.</b> Time is O(n), since each node is visited once. Space is O(w) for BFS, where w is the maximum width of the tree (up to n/2 for a complete tree). The DFS version uses O(h) for the recursion stack, where h is the height.</p>
+<hr>
 <h2>math</h2>
 <p class="when">Fri 27 Nov, 23:25</p>
 <h3>Friday: Fermi Estimation</h3>
@@ -68,41 +103,6 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 <hr class="ans">
 <h3>Answer</h3>
 <p>Use the rule of 70: doubling time ≈ 70 / (growth rate in %). At 5% per day, that is 70 / 5 ≈ <b>14 days</b>. The exact figure is ln2 / 0.05 ≈ 13.9 days. After four weeks the backlog would be about 4× its size today. Clearing even a small part of it every day turns k negative and stops the growth.</p>
-<hr>
-<h2>dsa</h2>
-<p class="when">Fri 27 Nov, 23:16</p>
-<h3>Friday: Trees (DFS, BFS, recursion)</h3>
-<p><b>When to reach for this pattern:</b> Use it when the answer for a node depends on its subtrees or on its path from the root, so you can pass state down or return results up.</p>
-<p><b>Problem: Maximum Ancestor Difference</b> Given the root of a binary tree, return the largest value of <code>|a.val - b.val|</code>, where node <code>a</code> is an ancestor of node <code>b</code>.</p>
-<p>Example:</p>
-<pre>      4
-     / \
-    1   7
-         \
-          12</pre>
-<p>The pairs are (4,1)=3, (4,7)=3, (4,12)=8 and (7,12)=5, so the output is <b>8</b>.</p>
-<p><b>Recall first</b></p>
-<ol>
-<li>What is the brute force, and what does it cost?</li>
-<li>For any node, which two values on its root-to-node path can produce the largest difference with it?</li>
-<li>What are the time and space targets?</li>
-</ol>
-<p>---</p>
-<hr class="ans">
-<h3>Answer</h3>
-<p>The brute force runs a DFS from every node and compares it with all of its descendants. That is O(n²) on a skewed tree. The key observation is that a node's best difference with any ancestor uses either the smallest or the largest value on its root path. So pass <code>lo</code> and <code>hi</code> down the recursion and update them at each node. When you reach a null child, the path is complete, so return <code>hi - lo</code>. Take the maximum over all paths.</p>
-<pre>func dfs(node, lo, hi) -&gt; Int:
-    if node == nil: return hi - lo
-    lo = min(lo, node.val)
-    hi = max(hi, node.val)
-    return max(dfs(node.left, lo, hi),
-               dfs(node.right, lo, hi))
-
-answer = dfs(root, root.val, root.val)</pre>
-<ul>
-<li><b>Time:</b> O(n), because each node is visited once.</li>
-<li><b>Space:</b> O(h) for the recursion stack. That is O(log n) when the tree is balanced and O(n) when it is skewed.</li>
-</ul>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
