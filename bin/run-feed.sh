@@ -1,11 +1,11 @@
 #!/bin/bash
-# Usage: bin/run-feed.sh <physics|math|dsa>
+# Usage: bin/run-feed.sh <physics|math|dsa|ios>
 # 1. reads the notes of the matching event in the "claude-maxing" calendar
 # 2. runs them through Claude (headless)
 # 3. appends the answer to feed.json, commits and pushes
 set -euo pipefail
 
-SLOT="${1:?usage: run-feed.sh <physics|math|dsa>}"
+SLOT="${1:?usage: run-feed.sh <physics|math|dsa|ios>}"
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
@@ -17,10 +17,13 @@ CALENDAR_NAME="${CALENDAR_NAME:-claude-maxing}"
 LOG="$REPO/logs/run.log"; mkdir -p "$REPO/logs"
 log() { echo "$(date '+%F %T') [$SLOT] $*" >> "$LOG"; }
 
+# who the session is written for; the ios slot is its own flavor
+AUDIENCE="a curious generalist who wants to think more clearly about engineering, finance, business and everyday decisions"
 case "$SLOT" in
   physics) KEYWORD="physics/maxing" ;;
   math)    KEYWORD="math/maxing" ;;
   dsa)     KEYWORD="dsa/maxing" ;;
+  ios)     KEYWORD="ios/maxing"; AUDIENCE="an iOS software engineer" ;;
   *) echo "unknown slot: $SLOT" >&2; exit 2 ;;
 esac
 
@@ -98,7 +101,7 @@ log "notes from ${RAW%%$'\n'*}"
 
 # --- 2. Claude ---
 TODAY="$(date '+%A %d %B %Y')"
-PROMPT="Today is $TODAY. You are producing today's '$SLOT' micro-session for a curious generalist who wants to think more clearly about engineering, finance, business and everyday decisions. Below are the notes from the calendar event; follow them exactly. Do not open links or use tools; rely on the notes and your own knowledge. If the notes ask for a daily item, pick today's item fresh. Reply in Markdown with only the content to publish: a short title line (##), then the session, under 300 words. Put any answer or check at the very end after a line that says 'Answer:'.
+PROMPT="Today is $TODAY. You are producing today's '$SLOT' micro-session for $AUDIENCE. Below are the notes from the calendar event; follow them exactly. Do not open links or use tools; rely on the notes and your own knowledge. If the notes ask for a daily item, pick today's item fresh. Reply in Markdown with only the content to publish: a short title line (##), then the session, under 300 words. Put any answer or check at the very end after a line that says 'Answer:'.
 
 --- CALENDAR NOTES ---
 $NOTES"

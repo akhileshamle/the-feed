@@ -1,5 +1,5 @@
 #!/bin/bash
-# Installs three daily launchd jobs. Run once from the repo folder:  bash install.sh
+# Installs the daily launchd jobs (one per slot). Run once from the repo folder:  bash install.sh
 # Remove them later with:  bash install.sh --uninstall
 set -euo pipefail
 REPO="$(cd "$(dirname "$0")" && pwd)"
@@ -7,7 +7,8 @@ AGENTS="$HOME/Library/LaunchAgents"
 UIDN="$(id -u)"
 
 # slot  hour  minute  (IST, your Mac's local time)
-JOBS="physics 11 15
+JOBS="ios 6 5
+physics 11 15
 math 11 25
 dsa 14 0"
 

@@ -1,9 +1,10 @@
 # the-feed
 
-Three daily prompts run on a Mac and publish to a GitHub Pages page.
+Four daily prompts run on a Mac and publish to a GitHub Pages page. Physics, math and dsa are written for a general reader; `ios` is its own flavor for an iOS engineer, shown under its own filter on the page.
 
 | Slot | Time (IST) | Calendar event it reads |
 |---|---|---|
+| ios | 06:05 | `/ios/maxing/cheat-sheet` |
 | physics | 11:15 | `/physics/maxing/cheat-sheet` |
 | math | 11:25 | `/math/maxing/cheat-sheet` |
 | dsa | 14:00 | `/dsa/maxing/cheat-sheet` |
@@ -16,7 +17,7 @@ appends the reply to `feed.json`, then commits and pushes. `index.html` renders 
 
 ```mermaid
 flowchart TD
-    L["launchd<br/>11:15 physics · 11:25 math · 14:00 dsa"] --> R["bin/run-feed.sh &lt;slot&gt;"]
+    L["launchd<br/>06:05 ios · 11:15 physics · 11:25 math · 14:00 dsa"] --> R["bin/run-feed.sh &lt;slot&gt;"]
     R --> LK{"lock free and<br/>not run today?"}
     LK -- no --> SK["log and exit"]
     LK -- yes --> C["Calendar: claude-maxing<br/>event notes"]
@@ -44,11 +45,11 @@ flowchart TD
 - `kindle.html`: generated on every run by `bin/make-kindle.py`; open https://akhileshamle.github.io/the-feed/kindle.html on a Kindle
 - `feed.json`: the latest 200 entries (what the page shows)
 - `archive/YYYY-MM.json`: older entries, moved out of `feed.json` by month instead of deleted
-- `bin/run-feed.sh`: one run: `bash bin/run-feed.sh <physics|math|dsa>`
-- `bin/archive-prompt.sh`: saves a slot's current Calendar note to `prompts/archive/<date>-<slot>.md`: `bash bin/archive-prompt.sh <physics|math|dsa>`
+- `bin/run-feed.sh`: one run: `bash bin/run-feed.sh <physics|math|dsa|ios>`
+- `bin/archive-prompt.sh`: saves a slot's current Calendar note to `prompts/archive/<date>-<slot>.md`: `bash bin/archive-prompt.sh <physics|math|dsa|ios>`
 - `prompts/archive/`: old Calendar notes (prompts), one dated file each; kept when a note is replaced (claude.ai artifact links are replaced by a placeholder, since the repo is public)
 - `bin/make-kindle.py`: rebuilds `kindle.html` from `feed.json` (`python3 bin/make-kindle.py`)
-- `install.sh`: installs or removes the three daily launchd jobs
+- `install.sh`: installs or removes the daily launchd jobs (one per slot)
 - `logs/`, `bin/feed.env`, `.lock`: local only, git-ignored
 
 ## Setup (once)
