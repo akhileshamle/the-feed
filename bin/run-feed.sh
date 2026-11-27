@@ -46,35 +46,54 @@ sys.exit(0 if any(e.get("slot") == os.environ["SLOT"] and e.get("time", "")[:10]
 PY
 then log "already ran today (FORCE=1 to run again)"; exit 0; fi
 
-# --- 1. notes from Calendar (recurring events keep the same notes on every occurrence) ---
-NOTES="$(osascript - "$CALENDAR_NAME" "$KEYWORD" <<'APPLESCRIPT'
+# --- 1. notes from Calendar ---
+# Which event wins: a one-day event that starts today (an override for today) first, otherwise the
+# recurring event ("all events" notes). One-day events on other days are ignored.
+# FEED_DAY_OFFSET=1 pretends it is tomorrow (for testing only).
+RAW="$(osascript - "$CALENDAR_NAME" "$KEYWORD" "${FEED_DAY_OFFSET:-0}" <<'APPLESCRIPT'
 on run argv
   set calName to item 1 of argv
   set kw to item 2 of argv
-  -- pick the most recently started matching event that has notes
+  set dayStart to (current date)
+  set time of dayStart to 0
+  set dayStart to dayStart + ((item 3 of argv) as integer) * days
+  set dayEnd to dayStart + 1 * days
   with timeout of 300 seconds
     tell application "Calendar"
       set evs to (every event of calendar calName whose summary contains kw)
-      set best to ""
-      set bestDate to missing value
+      set ovNotes to ""
+      set ovDate to missing value
+      set recNotes to ""
+      set recDate to missing value
       repeat with ev in evs
         set d to description of ev
         if d is not missing value and d is not "" then
           set s to start date of ev
-          if bestDate is missing value or s > bestDate then
-            set best to d
-            set bestDate to s
+          if (recurrence of ev) is not missing value then
+            if recDate is missing value then
+              set recNotes to d
+              set recDate to s
+            end if
+          else if s ≥ dayStart and s < dayEnd then
+            if ovDate is missing value or s > ovDate then
+              set ovNotes to d
+              set ovDate to s
+            end if
           end if
         end if
       end repeat
-      return best
+      if ovDate is not missing value then return "one-day event of " & (ovDate as string) & linefeed & ovNotes
+      if recDate is not missing value then return "recurring event" & linefeed & recNotes
+      return ""
     end tell
   end timeout
 end run
 APPLESCRIPT
 )" || { log "osascript failed (Automation permission for Calendar?)"; exit 1; }
 
-if [ -z "${NOTES// /}" ]; then log "no notes found for '$KEYWORD' in '$CALENDAR_NAME'"; exit 1; fi
+NOTES="${RAW#*$'\n'}"
+if [ -z "${RAW// /}" ] || [ -z "${NOTES// /}" ]; then log "no notes found for '$KEYWORD' in '$CALENDAR_NAME'"; exit 1; fi
+log "notes from ${RAW%%$'\n'*}"
 
 # --- 2. Claude ---
 TODAY="$(date '+%A %d %B %Y')"

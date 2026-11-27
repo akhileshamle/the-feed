@@ -76,7 +76,9 @@ Run from `~/Developer/the-feed`.
 
 ## Changing things
 
-- **A prompt:** edit that event's notes in the `claude-maxing` calendar.
+- **A prompt, every day:** edit the notes of the recurring event in the `claude-maxing` calendar and choose "All events".
+- **A prompt, one day only:** add a separate one-day event on that day in `claude-maxing`, with the slot keyword in the title (for example `/physics/maxing/special`) and the prompt in its notes. A one-day event that starts on the run's day wins over the recurring one; one-day events on other days are ignored. Delete it afterwards or leave it, since it only applies on its own day. `logs/run.log` shows which one a run used (`notes from recurring event` or `notes from one-day event of …`).
+- **Sync first:** the run reads whatever Calendar has locally, so edit the evening before rather than minutes before the run.
 - **A time:** edit the `JOBS` list in `install.sh`, then run `bash install.sh`.
 - **A new slot:** add a `case` branch in `bin/run-feed.sh` and a line in `JOBS`.
 - **Moved the folder or reinstalled Claude:** run `bash install.sh` again.
@@ -88,7 +90,7 @@ Look at `logs/run.log` and `logs/launchd-<slot>.err` first.
 | Message | Likely cause and fix |
 |---|---|
 | `osascript failed` | Calendar access blocked. System Settings, Privacy & Security, Automation. |
-| `no notes found` | Event title or calendar name changed. |
+| `no notes found` | Event title or calendar name changed, or the matching event has empty notes. |
 | `claude failed` | Login expired. Run `claude` once to sign in. |
 | `push failed` | Token expired or revoked. See below. |
 | `Operation not permitted`, exit `126` | Folder is in a macOS-protected location. Move it to `~/Developer`. |
