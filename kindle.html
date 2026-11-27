@@ -23,7 +23,42 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Fri 27 Nov, 23:13</p>
+<p class="when">Updated Fri 27 Nov, 23:16</p>
+<h2>dsa</h2>
+<p class="when">Fri 27 Nov, 23:16</p>
+<h3>Friday: Trees (DFS, BFS, recursion)</h3>
+<p><b>When to reach for this pattern:</b> Use it when the answer for a node depends on its subtrees or on its path from the root, so you can pass state down or return results up.</p>
+<p><b>Problem: Maximum Ancestor Difference</b> Given the root of a binary tree, return the largest value of <code>|a.val - b.val|</code>, where node <code>a</code> is an ancestor of node <code>b</code>.</p>
+<p>Example:</p>
+<pre>      4
+     / \
+    1   7
+         \
+          12</pre>
+<p>The pairs are (4,1)=3, (4,7)=3, (4,12)=8 and (7,12)=5, so the output is <b>8</b>.</p>
+<p><b>Recall first</b></p>
+<ol>
+<li>What is the brute force, and what does it cost?</li>
+<li>For any node, which two values on its root-to-node path can produce the largest difference with it?</li>
+<li>What are the time and space targets?</li>
+</ol>
+<p>---</p>
+<hr class="ans">
+<h3>Answer</h3>
+<p>The brute force runs a DFS from every node and compares it with all of its descendants. That is O(n²) on a skewed tree. The key observation is that a node's best difference with any ancestor uses either the smallest or the largest value on its root path. So pass <code>lo</code> and <code>hi</code> down the recursion and update them at each node. When you reach a null child, the path is complete, so return <code>hi - lo</code>. Take the maximum over all paths.</p>
+<pre>func dfs(node, lo, hi) -&gt; Int:
+    if node == nil: return hi - lo
+    lo = min(lo, node.val)
+    hi = max(hi, node.val)
+    return max(dfs(node.left, lo, hi),
+               dfs(node.right, lo, hi))
+
+answer = dfs(root, root.val, root.val)</pre>
+<ul>
+<li><b>Time:</b> O(n), because each node is visited once.</li>
+<li><b>Space:</b> O(h) for the recursion stack. That is O(log n) when the tree is balanced and O(n) when it is skewed.</li>
+</ul>
+<hr>
 <h2>math</h2>
 <p class="when">Fri 27 Nov, 23:13</p>
 <h3>Friday: Fermi estimation</h3>
@@ -69,22 +104,6 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 <hr class="ans">
 <h3>Answer</h3>
 <p>N(12) = 20 × 1.05¹² ≈ 20 × 1.80 ≈ <b>36 flaky tests</b>. Doubling time ≈ 70 / 5 = <b>about 14 weeks</b> (rule of 70). To flip the sign to k &lt; 0, make a flaky failure cost something. For example, auto-quarantine the test and open a ticket instead of allowing a silent re-run. Then each failure leads to a fix, and the count goes down.</p>
-<hr>
-<h2>physics</h2>
-<p class="when">Fri 27 Nov, 22:12</p>
-<h3>Signal vs Noise: Don't Trust One Launch</h3>
-<p><b>Concept:</b> One measurement mixes signal with noise. Averaging N independent samples shrinks the noise:</p>
-<p><b>σ_mean = σ / √N</b></p>
-<p>The catch is the square root. Cutting noise in half takes 4× the samples. Cutting it to a tenth takes 100×.</p>
-<p><b>Why it matters:</b> People react to single data points all the time. One slow standup, one bad sprint, one angry App Store review. Before you judge, ask how big the noise is compared with the change you think you see.</p>
-<p><b>iOS lens:</b> You run your app once on a device and cold launch takes 480 ms. Yesterday it took 420 ms. Is that a regression? Thermal state, background daemons, disk cache and other processes on the device can easily move a single launch by ±100 ms. With one run each, you can't tell a regression from a random dip.</p>
-<p>The fix is to measure many runs and compare averages. XCTest's <code>measure(metrics:)</code> with <code>XCTApplicationLaunchMetric</code> and several iterations does this, and so does looking at MetricKit percentiles across many users instead of a single report.</p>
-<p><b>Rule of thumb:</b> You can call an effect real when it's at least 2× σ_mean. You need about 3× before you'd block a release over it.</p>
-<p><b>Today's question:</b> Cold launch time on your test device has a run-to-run standard deviation of σ = 120 ms. You want to reliably detect a 30 ms regression, which means getting σ_mean down to about 15 ms. Roughly how many launches per build do you need to average?</p>
-<p><b>Real-life drill:</b> Pick one metric you reacted to this week, such as a crash count, a build time or a review score. Estimate its noise and decide whether that change was actually a signal.</p>
-<hr class="ans">
-<h3>Answer</h3>
-<p>σ_mean = σ/√N, so √N = 120/15 = 8, which gives <b>N ≈ 64 launches per build</b>. Ten runs would only get σ_mean to about 38 ms, which is bigger than the 30 ms regression you're looking for. To halve the noise again (7.5 ms), you'd need about 256 runs.</p>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
