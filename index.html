@@ -27,6 +27,11 @@
   .body code { background:var(--bg); padding:1px 5px; border-radius:4px; font-size:.9em; }
   .body pre { background:var(--bg); padding:12px; border-radius:8px; overflow-x:auto; }
   .body pre code { padding:0; background:none; }
+  .body blockquote { margin:8px 0; padding:2px 0 2px 12px; border-left:3px solid var(--line); color:var(--muted); }
+  .answer { margin-top:12px; border-top:1px dashed var(--line); padding-top:8px; }
+  .answer summary { cursor:pointer; color:var(--accent); font-weight:600; font-size:.9rem; }
+  footer { margin-top:24px; font-size:.85rem; color:var(--muted); text-align:center; }
+  footer a { color:var(--accent); }
   .empty, .err { color:var(--muted); text-align:center; padding:40px 0; }
 </style>
 </head>
@@ -36,6 +41,7 @@
   <div class="sub" id="updated">Loading…</div>
   <div class="filters" id="filters"></div>
   <div id="list"></div>
+  <footer><a href="kindle.html">Kindle version</a></footer>
 </main>
 <script>
 (function () {
@@ -62,16 +68,21 @@
   }
   function md(src) {
     var lines = String(src).replace(/\r/g, '').split('\n');
-    var out = [], list = null, code = false, buf = [], para = [];
+    var out = [], list = null, code = false, buf = [], para = [], quote = [];
     function flushPara() { if (para.length) { out.push('<p>' + inline(para.join(' ')) + '</p>'); para = []; } }
+    function flushQuote() { if (quote.length) { out.push('<blockquote>' + inline(quote.join(' ')) + '</blockquote>'); quote = []; } }
     function closeList() { if (list) { out.push('</' + list + '>'); list = null; } }
     lines.forEach(function (line) {
       if (/^```/.test(line)) {
+        flushQuote();
         if (code) { out.push('<pre><code>' + esc(buf.join('\n')) + '</code></pre>'); buf = []; code = false; }
         else { flushPara(); closeList(); code = true; }
         return;
       }
       if (code) { buf.push(line); return; }
+      var q = line.match(/^\s*>\s?(.*)$/);
+      if (q) { flushPara(); closeList(); quote.push(q[1].trim()); return; }
+      flushQuote();
       var h = line.match(/^(#{1,3})\s+(.*)$/);
       var ul = line.match(/^\s*[-*]\s+(.*)$/);
       var ol = line.match(/^\s*\d+[.)]\s+(.*)$/);
@@ -82,8 +93,26 @@
       else { closeList(); para.push(line.trim()); }
     });
     if (code) out.push('<pre><code>' + esc(buf.join('\n')) + '</code></pre>');
-    flushPara(); closeList();
+    flushQuote(); flushPara(); closeList();
     return out.join('\n');
+  }
+
+  // Split at the last "Answer:" line outside code blocks, so the answer can stay hidden until asked for.
+  function splitAnswer(src) {
+    var lines = String(src).replace(/\r/g, '').split('\n'), code = false, at = -1, m;
+    lines.forEach(function (l, i) {
+      if (/^```/.test(l)) code = !code;
+      else if (!code && /^\s*(\*\*)?Answer:(\*\*)?/i.test(l)) at = i;
+    });
+    if (at < 0) return [src, ''];
+    var rest = lines[at].replace(/^\s*(\*\*)?Answer:(\*\*)?\s*/i, '');
+    return [lines.slice(0, at).join('\n'), [rest].concat(lines.slice(at + 1)).join('\n').trim()];
+  }
+  function body(src) {
+    var parts = splitAnswer(src);
+    var html = md(parts[0]);
+    if (parts[1]) html += '<details class="answer"><summary>Show answer</summary>' + md(parts[1]) + '</details>';
+    return html;
   }
 
   function fmt(iso) {
@@ -97,7 +126,7 @@
     if (!shown.length) { listEl.innerHTML = '<div class="empty">Nothing here yet.</div>'; return; }
     listEl.innerHTML = shown.map(function (e) {
       return '<article><div class="meta"><span class="tag">' + esc(e.slot) + '</span><span>' + esc(fmt(e.time)) +
-             '</span></div><div class="body">' + md(e.text) + '</div></article>';
+             '</span></div><div class="body">' + body(e.text) + '</div></article>';
     }).join('');
   }
 

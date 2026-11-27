@@ -9,18 +9,21 @@ Three daily prompts run on a Mac and publish to a GitHub Pages page.
 | dsa | 14:00 | `/dsa/maxing/cheat-sheet` |
 
 Each run reads the event notes from the `claude-maxing` calendar, sends them to Claude (`claude -p`),
-appends the reply to `feed.json`, then commits and pushes. `index.html` renders `feed.json`.
+appends the reply to `feed.json`, then commits and pushes. `index.html` renders `feed.json`;
+`kindle.html` is a static, script-free copy of the latest three entries for e-ink browsers.
 
 > **This repo and page are public.** Everything Claude writes here can be read by anyone with the URL.
 > Keep calendar notes free of private plans, finances, work-confidential details, links and credentials.
 
 ## Files
 
-- `index.html`: the page (reads `feed.json`)
+- `index.html`: the page (reads `feed.json`); answers are hidden behind "Show answer"
+- `kindle.html`: generated on every run by `bin/make-kindle.py`; open `<pages-url>/kindle.html` on a Kindle
 - `feed.json`: all entries, last 200 kept
 - `bin/run-feed.sh`: one run: `bash bin/run-feed.sh <physics|math|dsa>`
+- `bin/make-kindle.py`: rebuilds `kindle.html` from `feed.json` (`python3 bin/make-kindle.py`)
 - `install.sh`: installs or removes the three daily launchd jobs
-- `logs/`, `bin/feed.env`: local only, git-ignored
+- `logs/`, `bin/feed.env`, `.lock`: local only, git-ignored
 
 ## Setup (once)
 
@@ -39,6 +42,8 @@ Run from `~/Developer/the-feed`.
 |---|---|
 | Check recent runs | `tail -5 logs/run.log` |
 | Run one now | `bash bin/run-feed.sh physics` |
+| Run again on a day it already ran | `FORCE=1 bash bin/run-feed.sh physics` |
+| Dry run, no push | `SKIP_PUSH=1 bash bin/run-feed.sh physics` |
 | See job status (exit code `0` is fine, `126` means blocked) | `launchctl list \| grep thefeed` |
 | Test the scheduled path | `launchctl kickstart gui/$(id -u)/com.thefeed.physics` |
 | Stop all jobs | `bash install.sh --uninstall` |
@@ -64,6 +69,10 @@ Look at `logs/run.log` and `logs/launchd-<slot>.err` first.
 | `push failed` | Token expired or revoked. See below. |
 | `Operation not permitted`, exit `126` | Folder is in a macOS-protected location. Move it to `~/Developer`. |
 | Push rejected | `git pull --rebase origin main`, then `git push`. |
+| `rebase failed` | Remote has a conflicting change. The commit is kept locally; run `git pull --rebase origin main`, fix, `git push`. |
+| `bad response, not published` | Claude's reply did not start with a `##` title (often a login or CLI error). Run `claude` to check. |
+| `already ran today` | That slot already has an entry for today. Use `FORCE=1` to run again. |
+| `lock busy` | Another run held `.lock` for 5 minutes. If none is running, `rmdir .lock`. |
 
 ### Renewing the token
 
@@ -73,6 +82,7 @@ Look at `logs/run.log` and `logs/launchd-<slot>.err` first.
 
 ## How it behaves
 
+- Each slot publishes at most once a day; runs wait for each other, so jobs that fire together on wake don't clash.
 - The Mac must be awake and logged in. A locked screen is fine.
 - A run missed while the Mac sleeps happens on wake. A run missed while it is off is skipped.
 - Jobs reload on their own after a restart, once you log in.
