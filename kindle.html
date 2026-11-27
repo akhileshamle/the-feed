@@ -20,7 +20,55 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Fri 27 Nov, 11:25</p>
+<p class="when">Updated Fri 27 Nov, 14:00</p>
+<h2>dsa</h2>
+<p class="when">Fri 27 Nov, 14:00</p>
+<h3>DSA Micro-Session: Union-Find (Disjoint Set Union)</h3>
+<p><b>Today's item:</b> Union-Find with path compression and union by rank.</p>
+<h3>Recall first (about 4 minutes, no peeking)</h3>
+<p>Try to answer these from memory, out loud or on paper:</p>
+<ol>
+<li>What two operations does Union-Find support, and what does each return or do?</li>
+<li>What is <b>path compression</b>, and which operation uses it?</li>
+<li>What is <b>union by rank</b> (or by size), and what problem does it prevent?</li>
+<li>With both optimizations, what is the amortized time per operation?</li>
+<li>Name two classic problems where Union-Find is the right tool.</li>
+<li>How do you detect a cycle in an undirected graph with it?</li>
+</ol>
+<h3>Code it (about 4 minutes)</h3>
+<p>Write a minimal Swift <code>UnionFind</code> struct with <code>find(_:)</code> and <code>union(_:_:) -&gt; Bool</code>. <code>union</code> should return <code>false</code> if the two nodes were already connected.</p>
+<h3>Self-check (about 2 minutes)</h3>
+<p>Run your code against <code>[(0,1), (1,2), (2,0)]</code>. Which call to <code>union</code> returns <code>false</code>, and what does that tell you?</p>
+<p>---</p>
+<p>Answer:</p>
+<ol>
+<li><code>find(x)</code> returns the root (representative) of x's set. <code>union(a, b)</code> merges the two sets that contain a and b.</li>
+<li>During <code>find</code>, every node on the path gets pointed straight at the root, so later lookups are faster.</li>
+<li>You attach the shorter tree under the taller one. Without this, the trees can turn into long chains with O(n) depth.</li>
+<li>O(α(n)), the inverse Ackermann function. In practice that is constant time.</li>
+<li>Kruskal's MST, number of connected components / provinces, redundant connection, accounts merge, and checking whether a graph is a valid tree.</li>
+<li>For each edge (u, v), if <code>find(u) == find(v)</code> there is a cycle. Otherwise call <code>union(u, v)</code>.</li>
+</ol>
+<pre>struct UnionFind {
+    private var parent: [Int], rank: [Int]
+    init(_ n: Int) { parent = Array(0..&lt;n); rank = Array(repeating: 0, count: n) }
+
+    mutating func find(_ x: Int) -&gt; Int {
+        if parent[x] != x { parent[x] = find(parent[x]) }
+        return parent[x]
+    }
+
+    mutating func union(_ a: Int, _ b: Int) -&gt; Bool {
+        let (ra, rb) = (find(a), find(b))
+        guard ra != rb else { return false }
+        if rank[ra] &lt; rank[rb] { parent[ra] = rb }
+        else if rank[ra] &gt; rank[rb] { parent[rb] = ra }
+        else { parent[rb] = ra; rank[ra] += 1 }
+        return true
+    }
+}</pre>
+<p><b>Self-check:</b> <code>union(2, 0)</code> returns <code>false</code>. Nodes 0 and 2 were already connected through 1, so the edge (2,0) closes a cycle.</p>
+<hr>
 <h2>math</h2>
 <p class="when">Fri 27 Nov, 11:25</p>
 <h3>Friday Math: The Crash-Free Illusion</h3>
@@ -80,53 +128,5 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 <ol>
 <li>A good answer names the disturbance (a missed day, a sick teammate, a bad merge) and a mechanism that automatically pushes things back: a default, a check, a fallback or a smaller minimum version.</li>
 </ol>
-<hr>
-<h2>dsa</h2>
-<p class="when">Thu 26 Nov, 14:00</p>
-<h3>DSA Micro-Session: Monotonic Stack and the Next Greater Element</h3>
-<p><b>Cheatsheet item:</b> Monotonic stack, an O(n) pattern for "next greater/smaller" questions.</p>
-<h3>1. Recall (3 min, no peeking)</h3>
-<p>Close your editor and answer from memory:</p>
-<ul>
-<li>What does the stack hold: values or indices? Why?</li>
-<li>Does the stack stay increasing or decreasing from bottom to top when you look for the <i>next greater</i> element?</li>
-<li>What is the time complexity, and why isn't it O(n²) even though there's a loop inside a loop?</li>
-</ul>
-<h3>2. Problem (5 min)</h3>
-<p>Given <code>temps = [73, 74, 75, 71, 69, 72, 76, 73]</code>, return an array where <code>result[i]</code> is how many days you wait until a warmer temperature. Use <code>0</code> if no warmer day comes.</p>
-<p>Write it in Swift:</p>
-<pre>func dailyTemperatures(_ temps: [Int]) -&gt; [Int] {
-    // your code
-}</pre>
-<p>Before checking, trace your solution by hand on the input above.</p>
-<h3>3. Stretch (2 min)</h3>
-<p>How would you change it to find the <i>previous smaller</i> element? What happens with a circular array, as in "Next Greater Element II"?</p>
-<p>---</p>
-<p>Answer:</p>
-<p><b>Recall:</b></p>
-<ul>
-<li>The stack stores <b>indices</b>. An index gives you the value (<code>temps[i]</code>) and the distance (<code>i - j</code>).</li>
-<li>For next greater, the stack is <b>decreasing</b> from bottom to top. Each new value pops every smaller value below it.</li>
-<li>It runs in <b>O(n) time and O(n) space</b>. Each index is pushed once and popped at most once.</li>
-</ul>
-<p><b>Solution:</b></p>
-<pre>func dailyTemperatures(_ temps: [Int]) -&gt; [Int] {
-    var result = Array(repeating: 0, count: temps.count)
-    var stack: [Int] = []
-    for (i, t) in temps.enumerated() {
-        while let last = stack.last, temps[last] &lt; t {
-            stack.removeLast()
-            result[last] = i - last
-        }
-        stack.append(i)
-    }
-    return result
-}</pre>
-<p><b>Output:</b> <code>[1, 1, 4, 2, 1, 1, 0, 0]</code></p>
-<p><b>Stretch:</b></p>
-<ul>
-<li><b>Previous smaller:</b> pop while <code>temps[top] &gt;= t</code>. After popping, the top of the stack is the answer for <code>i</code>.</li>
-<li><b>Circular array:</b> loop <code>i</code> from <code>0</code> to <code>2n - 1</code> and read <code>nums[i % n]</code>. Push indices only during the first pass (<code>i &lt; n</code>).</li>
-</ul>
 </body>
 </html>
