@@ -23,7 +23,25 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Fri 27 Nov, 23:16</p>
+<p class="when">Updated Fri 27 Nov, 23:24</p>
+<h2>physics</h2>
+<p class="when">Fri 27 Nov, 23:24</p>
+<h3>Friday: Feedback Loops (dx/dt = kx)</h3>
+<p><b>The idea</b> When the output of a system feeds back into its own rate of change, you have a loop. If k is positive, growth causes more growth, so small things compound into big ones. If k is negative, the system pushes back against change and settles toward a set point, the way a thermostat holds a room's temperature.</p>
+<p><b>Today's question</b> An unanswered email backlog grows about 5% per day, because each delayed reply brings follow-ups and "just checking in" messages. If you do nothing, roughly how many days until the backlog doubles?</p>
+<p><b>Real-life application: software engineering</b> A <b>retry storm</b> is a k&gt;0 loop. A service slows down, clients time out and retry, the retries add load, and the service slows down even more. The usual fix is <b>exponential backoff with jitter</b>, which is a k&lt;0 loop: the more failures a client sees, the longer it waits before trying again, so the load falls and the service recovers. When a system spirals, find the loop first and then change the sign of k.</p>
+<p><b>2-minute exercise</b></p>
+<ol>
+<li>Write down one thing in your life that is getting steadily better or worse, such as savings, fitness, inbox size or a relationship.</li>
+<li>Mark its loop as <b>k&gt;0</b> (it compounds) or <b>k&lt;0</b> (it stabilizes).</li>
+<li>Name the variable that feeds back into itself.</li>
+<li>Name one small action that would flip the sign or change the size of k this week.</li>
+</ol>
+<p>Log it: date, concept, my answer, what I applied.</p>
+<hr class="ans">
+<h3>Answer</h3>
+<p>Use the rule of 70: doubling time ≈ 70 / (growth rate in %). At 5% per day, that is 70 / 5 ≈ <b>14 days</b>. The exact figure is ln2 / 0.05 ≈ 13.9 days. After four weeks the backlog would be about 4× its size today. Clearing even a small part of it every day turns k negative and stops the growth.</p>
+<hr>
 <h2>dsa</h2>
 <p class="when">Fri 27 Nov, 23:16</p>
 <h3>Friday: Trees (DFS, BFS, recursion)</h3>
@@ -82,28 +100,6 @@ answer = dfs(root, root.val, root.val)</pre>
 <li>Per year: 3.2 × 230 ≈ <b>736 h ≈ 740 engineer-hours</b></li>
 </ul>
 <p>That is about 18 full 40-hour work weeks a year. At about $100 per engineer-hour, it costs around <b>$74k a year</b>. Halving build time would save about $37k a year, which is more than a fast CI Mac costs.</p>
-<hr>
-<h2>physics</h2>
-<p class="when">Fri 27 Nov, 23:11</p>
-<h3>Friday: Feedback Loops, dx/dt = kx</h3>
-<p><b>The idea:</b> A feedback loop is any system where the output feeds back into its own rate of change. If k &gt; 0, growth makes more growth (compounding). If k &lt; 0, the system pulls itself back toward a set point (stabilizing).</p>
-<p><b>Question for today:</b> Your iOS project has 20 flaky UI tests. Because people re-run failed builds and don't fix them, the count grows about 5% per week. How many flaky tests will there be in 12 weeks? Roughly how long until the count doubles?</p>
-<p><b>Real-life application (software engineering): retry storms</b></p>
-<ul>
-<li>When the backend slows down, every app instance retries right away. The extra load slows the server further, which causes more retries. That is k &gt; 0.</li>
-<li>Exponential backoff with jitter plus a circuit breaker turns this into k &lt; 0: the more failures there are, the fewer requests clients send, so the server can recover.</li>
-<li>Check your <code>URLSession</code> retry logic today. Ask whether a failure makes the next request more likely or less likely.</li>
-</ul>
-<p><b>2-minute exercise:</b></p>
-<ol>
-<li>Write down one loop in your current week, such as code review backlog, sleep and focus, or tech debt.</li>
-<li>Mark its sign: <b>+</b> (compounds) or <b>−</b> (stabilizes).</li>
-<li>Name one lever that would flip a harmful <b>+</b> into a <b>−</b>, or strengthen a helpful <b>+</b>.</li>
-</ol>
-<p>Log it: date, concept, my answer, what I applied.</p>
-<hr class="ans">
-<h3>Answer</h3>
-<p>N(12) = 20 × 1.05¹² ≈ 20 × 1.80 ≈ <b>36 flaky tests</b>. Doubling time ≈ 70 / 5 = <b>about 14 weeks</b> (rule of 70). To flip the sign to k &lt; 0, make a flaky failure cost something. For example, auto-quarantine the test and open a ticket instead of allowing a silent re-run. Then each failure leads to a fix, and the count goes down.</p>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
