@@ -1,6 +1,6 @@
 # the-feed
 
-Four daily prompts run on a Mac and publish to a GitHub Pages page. Physics, math and dsa are written for a general reader; `ios` is its own flavor for an iOS engineer, shown under its own filter on the page.
+Four daily prompts run on a Mac and publish to a GitHub Pages page. Physics, math and dsa are written for a general reader; `ios` is its own flavor for a senior iOS engineer, shown under its own filter on the page.
 
 | Slot | Time (IST) | Calendar event it reads |
 |---|---|---|

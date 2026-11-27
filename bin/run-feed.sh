@@ -23,7 +23,7 @@ case "$SLOT" in
   physics) KEYWORD="physics/maxing" ;;
   math)    KEYWORD="math/maxing" ;;
   dsa)     KEYWORD="dsa/maxing" ;;
-  ios)     KEYWORD="ios/maxing"; AUDIENCE="an iOS software engineer" ;;
+  ios)     KEYWORD="ios/maxing"; AUDIENCE="a senior iOS software engineer" ;;
   *) echo "unknown slot: $SLOT" >&2; exit 2 ;;
 esac
 
