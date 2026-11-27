@@ -13,6 +13,16 @@ Each run reads the event notes from the `claude-maxing` calendar, sends them to 
 appends the reply to `feed.json`, then commits and pushes. `index.html` renders `feed.json`;
 `kindle.html` is a static, script-free copy of the latest three entries for e-ink browsers.
 
+## What it looks like
+
+<p align="center">
+  <img src="docs/screenshots/feed.png" alt="The feed page: filter buttons, entry cards and collapsed answers" width="420">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/kindle.png" alt="The Kindle page: plain high-contrast text with the answer below a divider" width="330">
+</p>
+
+Left: `index.html`, the full feed with a filter per slot and answers hidden until you tap "Show answer" (the colors follow your system's light or dark setting). Right: `kindle.html`, the same latest entries as plain, script-free HTML for an e-ink browser, with the answer shown below a divider. Both are snapshots from 28 Nov 2026.
+
 ## How it fits together
 
 ```mermaid
