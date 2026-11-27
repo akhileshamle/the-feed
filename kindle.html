@@ -23,7 +23,38 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Fri 27 Nov, 23:42</p>
+<p class="when">Updated Fri 27 Nov, 23:56</p>
+<h2>ios</h2>
+<p class="when">Fri 27 Nov, 23:56</p>
+<h3>Friday: Debugging and production (launch watchdog regression)</h3>
+<p><b>Why this matters:</b> Watchdog terminations at launch never show up as normal crashes in your SDK dashboard, so a regression can quietly churn users for days. On older devices a few hundred milliseconds of extra main-thread work at launch can turn into a kill rate that tanks retention.</p>
+<p><b>Scenario:</b> Version 7.3 is at 20% of a phased release. Xcode Organizer shows <code>0x8badf00d</code> terminations up 4x, concentrated on A12-class devices with large datasets. You can't reproduce it locally. The release added a synchronous keychain-to-SQLite token migration in <code>application(_:didFinishLaunchingWithOptions:)</code> and a new analytics SDK initialised at launch. Any fix needs a new binary, and expedited review is roughly 24 hours. Pausing the phased release leaves the 20% on the bad build.</p>
+<p><b>Recall first:</b></p>
+<ol>
+<li>Which data sources can locate the blocking frame without a repro?</li>
+<li>What does pausing a phased release actually stop, and what doesn't it stop?</li>
+<li>What would you do in the next hour and in the hotfix, and why?</li>
+</ol>
+<hr class="ans">
+<h3>Answer</h3>
+<p><b>Decision:</b> Pause the phased release now. Pull the <code>MXAppLaunchDiagnostic</code> and <code>MXHangDiagnostic</code> call stacks from MetricKit, plus the Organizer termination logs, to confirm the frame. If the SDK init is remotely gateable, kill it with a flag. In the hotfix, move the migration off the main thread behind an async gate and request expedited review.</p>
+<p><b>Rejected:</b></p>
+<ul>
+<li>Removing the app from sale: it hits everyone.</li>
+<li>Waiting for a repro: the field data already contains the stack.</li>
+<li>Full rollback: the App Store doesn't support it.</li>
+</ul>
+<p><b>Main risk:</b> Once the migration is async, code can read tokens before the migration finishes, which causes spurious logouts.</p>
+<p><b>Common mistake:</b> Assuming the pause protects users. It only stops automatic updates. Manual updates and new installs still get 7.3.</p>
+<pre>actor TokenStore {
+    private var ready: Task&lt;Void, Error&gt;?
+    func start() { ready = Task.detached(priority: .userInitiated) { try Migrator.run() } }
+    func token() async throws -&gt; String {
+        try await ready?.value
+        return try read()
+    }
+}</pre>
+<hr>
 <h2>ios</h2>
 <p class="when">Fri 27 Nov, 23:42</p>
 <h3>Friday: Debugging and production (silent memory kills)</h3>
@@ -78,41 +109,6 @@ container.loadPersistentStores { _, error in /* swap in real UI */ }</pre>
 </ul>
 <p><b>Main risk:</b> Partially migrated stores. The hotfix must cope with a store that was interrupted mid-migration.</p>
 <p><b>Common mistake:</b> Measuring launch with Xcode attached, or on a current device, and declaring it fixed.</p>
-<hr>
-<h2>dsa</h2>
-<p class="when">Fri 27 Nov, 23:25</p>
-<h3>Friday: Trees (DFS, BFS, recursion)</h3>
-<p><b>When to reach for this pattern:</b> Use it when the data is hierarchical and each node's answer depends on its children, its parent, or its depth.</p>
-<p><b>Problem: Deepest Leaves Sum</b> You are given the root of a binary tree. Return the sum of the values of all nodes on the deepest level.</p>
-<p>Example:</p>
-<pre>        1
-       / \
-      2   3
-     / \   \
-    4   5   6
-   /         \
-  7           8</pre>
-<p>The deepest level is level 4, which holds nodes 7 and 8. Output: <code>15</code>.</p>
-<p><b>Recall first</b></p>
-<ol>
-<li>What is the brute force? (Hint: two passes.)</li>
-<li>What is the key observation that lets one pass do the job?</li>
-<li>What time and space should you aim for, and what does space depend on?</li>
-</ol>
-<hr class="ans">
-<h3>Answer</h3>
-<p><b>Approach.</b> The brute force takes two passes: one DFS to find the maximum depth, then a second DFS that adds up the nodes at that depth. The key observation is that a level-order BFS handles the tree one full level at a time. Keep a running sum for the current level and reset it at the start of each level. When the queue empties, the last level's sum is the answer. A one-pass DFS also works: carry the depth down, and whenever you reach a depth greater than the best so far, reset the sum.</p>
-<pre>if root is null: return 0
-queue = [root]
-while queue not empty:
-    level_sum = 0
-    repeat len(queue) times:
-        node = queue.pop_front()
-        level_sum += node.val
-        if node.left:  queue.push(node.left)
-        if node.right: queue.push(node.right)
-return level_sum</pre>
-<p><b>Complexity.</b> Time is O(n), since each node is visited once. Space is O(w) for BFS, where w is the maximum width of the tree (up to n/2 for a complete tree). The DFS version uses O(h) for the recursion stack, where h is the height.</p>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
