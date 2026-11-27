@@ -18,7 +18,7 @@ appends the reply to `feed.json`, then commits and pushes. `index.html` renders 
 ## Files
 
 - `index.html`: the page (reads `feed.json`); answers are hidden behind "Show answer"
-- `kindle.html`: generated on every run by `bin/make-kindle.py`; open `<pages-url>/kindle.html` on a Kindle
+- `kindle.html`: generated on every run by `bin/make-kindle.py`; open https://akhileshamle.github.io/the-feed/kindle.html on a Kindle
 - `feed.json`: all entries, last 200 kept
 - `bin/run-feed.sh`: one run: `bash bin/run-feed.sh <physics|math|dsa>`
 - `bin/make-kindle.py`: rebuilds `kindle.html` from `feed.json` (`python3 bin/make-kindle.py`)
@@ -84,6 +84,7 @@ Look at `logs/run.log` and `logs/launchd-<slot>.err` first.
 
 - Each slot publishes at most once a day; runs wait for each other, so jobs that fire together on wake don't clash.
 - The Mac must be awake and logged in. A locked screen is fine.
+- Keep the local repo on `main`. Runs use whatever branch is checked out, so a run on another branch commits there and nothing reaches the page, even though the log says `published`.
 - A run missed while the Mac sleeps happens on wake. A run missed while it is off is skipped.
 - Jobs reload on their own after a restart, once you log in.
 
