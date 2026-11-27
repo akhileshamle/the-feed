@@ -23,7 +23,31 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Fri 27 Nov, 23:11</p>
+<p class="when">Updated Fri 27 Nov, 23:13</p>
+<h2>math</h2>
+<p class="when">Fri 27 Nov, 23:13</p>
+<h3>Friday: Fermi estimation</h3>
+<p>Break a number you can't look up into 3–5 factors you can guess, then multiply them. Each guess may be off, but the errors tend to cancel, so the result usually lands within a factor of 2–3 of the truth.</p>
+<p><b>Problem:</b> Your iOS team has 8 engineers. Each pushes branches that trigger a CI build of about 12 minutes. Roughly how many <b>engineer-hours per year</b> does the team spend waiting on CI builds, unable to do focused work?</p>
+<p><b>Try it first:</b></p>
+<ul>
+<li>Guess how many builds one engineer triggers on a typical workday.</li>
+<li>Not every minute of a build is lost. Guess what fraction of build time someone is actually blocked.</li>
+<li>Use about 230 working days in a year.</li>
+</ul>
+<p><b>Why it matters:</b> A rough number like this lets you argue for a faster CI machine or build caching in money terms, without waiting for a dashboard.</p>
+<hr class="ans">
+<h3>Answer</h3>
+<p>One reasonable estimate (your guesses can differ):</p>
+<ul>
+<li>Builds per engineer per day: <b>6</b></li>
+<li>Team builds per day: 8 × 6 = <b>48</b></li>
+<li>Build minutes per day: 48 × 12 = <b>576 min ≈ 9.6 h</b></li>
+<li>Fraction of that time someone is blocked: <b>1/3</b>, so 9.6 / 3 ≈ <b>3.2 h/day</b></li>
+<li>Per year: 3.2 × 230 ≈ <b>736 h ≈ 740 engineer-hours</b></li>
+</ul>
+<p>That is about 18 full 40-hour work weeks a year. At about $100 per engineer-hour, it costs around <b>$74k a year</b>. Halving build time would save about $37k a year, which is more than a fast CI Mac costs.</p>
+<hr>
 <h2>physics</h2>
 <p class="when">Fri 27 Nov, 23:11</p>
 <h3>Friday: Feedback Loops, dx/dt = kx</h3>
@@ -61,55 +85,6 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 <hr class="ans">
 <h3>Answer</h3>
 <p>σ_mean = σ/√N, so √N = 120/15 = 8, which gives <b>N ≈ 64 launches per build</b>. Ten runs would only get σ_mean to about 38 ms, which is bigger than the 30 ms regression you're looking for. To halve the noise again (7.5 ms), you'd need about 256 runs.</p>
-<hr>
-<h2>dsa</h2>
-<p class="when">Fri 27 Nov, 14:00</p>
-<h3>DSA Micro-Session: Union-Find (Disjoint Set Union)</h3>
-<p><b>Today's item:</b> Union-Find with path compression and union by rank.</p>
-<h3>Recall first (about 4 minutes, no peeking)</h3>
-<p>Try to answer these from memory, out loud or on paper:</p>
-<ol>
-<li>What two operations does Union-Find support, and what does each return or do?</li>
-<li>What is <b>path compression</b>, and which operation uses it?</li>
-<li>What is <b>union by rank</b> (or by size), and what problem does it prevent?</li>
-<li>With both optimizations, what is the amortized time per operation?</li>
-<li>Name two classic problems where Union-Find is the right tool.</li>
-<li>How do you detect a cycle in an undirected graph with it?</li>
-</ol>
-<h3>Code it (about 4 minutes)</h3>
-<p>Write a minimal Swift <code>UnionFind</code> struct with <code>find(_:)</code> and <code>union(_:_:) -&gt; Bool</code>. <code>union</code> should return <code>false</code> if the two nodes were already connected.</p>
-<h3>Self-check (about 2 minutes)</h3>
-<p>Run your code against <code>[(0,1), (1,2), (2,0)]</code>. Which call to <code>union</code> returns <code>false</code>, and what does that tell you?</p>
-<p>---</p>
-<hr class="ans">
-<h3>Answer</h3>
-<ol>
-<li><code>find(x)</code> returns the root (representative) of x's set. <code>union(a, b)</code> merges the two sets that contain a and b.</li>
-<li>During <code>find</code>, every node on the path gets pointed straight at the root, so later lookups are faster.</li>
-<li>You attach the shorter tree under the taller one. Without this, the trees can turn into long chains with O(n) depth.</li>
-<li>O(α(n)), the inverse Ackermann function. In practice that is constant time.</li>
-<li>Kruskal's MST, number of connected components / provinces, redundant connection, accounts merge, and checking whether a graph is a valid tree.</li>
-<li>For each edge (u, v), if <code>find(u) == find(v)</code> there is a cycle. Otherwise call <code>union(u, v)</code>.</li>
-</ol>
-<pre>struct UnionFind {
-    private var parent: [Int], rank: [Int]
-    init(_ n: Int) { parent = Array(0..&lt;n); rank = Array(repeating: 0, count: n) }
-
-    mutating func find(_ x: Int) -&gt; Int {
-        if parent[x] != x { parent[x] = find(parent[x]) }
-        return parent[x]
-    }
-
-    mutating func union(_ a: Int, _ b: Int) -&gt; Bool {
-        let (ra, rb) = (find(a), find(b))
-        guard ra != rb else { return false }
-        if rank[ra] &lt; rank[rb] { parent[ra] = rb }
-        else if rank[ra] &gt; rank[rb] { parent[rb] = ra }
-        else { parent[rb] = ra; rank[ra] += 1 }
-        return true
-    }
-}</pre>
-<p><b>Self-check:</b> <code>union(2, 0)</code> returns <code>false</code>. Nodes 0 and 2 were already connected through 1, so the edge (2,0) closes a cycle.</p>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
