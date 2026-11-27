@@ -20,7 +20,39 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Thu 26 Nov, 14:00</p>
+<p class="when">Updated Fri 27 Nov, 11:15</p>
+<h2>physics</h2>
+<p class="when">Fri 27 Nov, 11:15</p>
+<h3>Day Drill: Equilibrium &amp; Stability: Is It a Bowl or a Hilltop?</h3>
+<p><b>Concept #7:</b> d²U/dx² &gt; 0 → stable</p>
+<p>At an equilibrium, the net force is zero (dU/dx = 0). That tells you a system is <i>balanced</i>. It doesn't tell you whether it <i>stays</i> balanced. The second derivative tells you that:</p>
+<ul>
+<li><b>Bowl (U'' &gt; 0):</b> nudge it, and it rolls back. Stable.</li>
+<li><b>Hilltop (U'' &lt; 0):</b> nudge it, and it runs away. Unstable.</li>
+<li><b>Flat (U'' ≈ 0):</b> nudge it, and it drifts. Neutral, with nothing pulling it back.</li>
+</ul>
+<p><b>Thinking lens:</b> Don't ask "is it working right now?" Ask "what happens after a small kick?" A system that only works when nothing goes wrong is sitting on a hilltop.</p>
+<p><b>iOS example:</b> Think of a release process that depends on one person remembering to bump the build number and update the changelog. When nothing goes wrong, it works. Then that person takes a sick day and the release goes out broken. That's a hilltop. A CI step that fails the build when the version wasn't bumped is a bowl: mistakes get pushed back to the right state automatically.</p>
+<p><b>Life example:</b> Take a morning routine that only works if you wake at 6:00 sharp. That's a hilltop, because one late night knocks the whole day over. A routine with a short "minimum version" (10 minutes of practice, whatever time you wake up) is a bowl: a disturbance shrinks it but doesn't kill it.</p>
+<p><b>Drill (2 min):</b></p>
+<ol>
+<li>For U(x) = x⁴ − 2x², find the equilibria and classify each one.</li>
+<li>Pick one habit or system you rely on this week. Is it a bowl or a hilltop? What one change would add a restoring force?</li>
+</ol>
+<p><b>Answer:</b></p>
+<ol>
+<li>U'(x) = 4x³ − 4x = 4x(x² − 1) = 0 → x = 0, ±1.</li>
+</ol>
+<p>U''(x) = 12x² − 4.</p>
+<ul>
+<li>At x = 0: U'' = −4 &lt; 0, so it's <b>unstable</b> (a hilltop).</li>
+<li>At x = ±1: U'' = 8 &gt; 0, so they're <b>stable</b> (bowls).</li>
+</ul>
+<p>This is a "double-well" shape. The middle looks balanced but is fragile, and the system settles into one of the two sides.</p>
+<ol>
+<li>A good answer names the disturbance (a missed day, a sick teammate, a bad merge) and a mechanism that automatically pushes things back: a default, a check, a fallback or a smaller minimum version.</li>
+</ol>
+<hr>
 <h2>dsa</h2>
 <p class="when">Thu 26 Nov, 14:00</p>
 <h3>DSA Micro-Session: Monotonic Stack and the Next Greater Element</h3>
@@ -99,38 +131,6 @@ hr { border: 0; border-top: 2px solid #000; margin: 24px 0; }
 <li>n = 300 sessions and p = 0.002, so np = 0.6. That gives 1 − e^(−0.6) ≈ 1 − 0.55 ≈ <b>45%</b>. Close to a coin flip, even with a 99.8% crash-free rate.</li>
 <li>You need e^(−np) = 0.5, so np ≈ 0.69 and n ≈ 0.69 / 0.002 ≈ <b>347 sessions</b>, or about 35 days. (This is the same 0.69 behind the Rule of 72.)</li>
 <li>np = 0.3, so 1 − e^(−0.3) ≈ 1 − 0.74 ≈ <b>26%</b>. Halving the crash rate takes the monthly chance from about 45% to about 26%, a drop of roughly 40% rather than half. The curve flattens as np grows, so for heavy users the improvement looks smaller than the rate change suggests.</li>
-</ol>
-<hr>
-<h2>physics</h2>
-<p class="when">Thu 26 Nov, 11:15</p>
-<h3>Physics Micro-Session: Feedback Loops (dx/dt = kx)</h3>
-<p><b>Concept (1 min)</b> When the rate at which something changes depends on how much of it there already is, you have a feedback loop. The equation dx/dt = kx gives x(t) = x₀·e^(kt).</p>
-<ul>
-<li><b>k &gt; 0 (positive feedback):</b> growth compounds. It is slow at first, then sudden.</li>
-<li><b>k &lt; 0 (negative feedback):</b> the system corrects itself and settles. Think of a thermostat.</li>
-</ul>
-<p>A quick shortcut is the <b>Rule of 70</b>. Doubling (or halving) time ≈ 70 / (percent rate per period).</p>
-<p><b>Lens (1 min)</b> The real question is "what does this feed back into?", not "how big is it now?" A small k that runs for a long time beats a big push that happens once.</p>
-<p><b>iOS example (2 min)</b></p>
-<ul>
-<li><b>Positive loop (bad):</b> messy module → slow builds → rushed fixes → messier module. Tech debt compounds like interest.</li>
-<li><b>Positive loop (good):</b> better tests → safer refactors → cleaner code → tests that are easier to write.</li>
-<li><b>Negative loop (stabilizer):</b> a CI check that fails the build when app launch time goes past a set budget. Every time drift happens, it gets pushed back.</li>
-</ul>
-<p>To change a system, find the sign of k. Slowing down a bad loop usually means adding a negative-feedback check, like a lint rule, a size budget or a weekly review. Extra effort alone doesn't do it.</p>
-<p><b>Drill (1 min)</b> Your project's clean build time grows about 5% per month as features are added. It's 4 minutes today.</p>
-<ol>
-<li>Roughly how long until it's 8 minutes?</li>
-<li>About how long would it be after 2 years if nothing changes?</li>
-<li>Name one negative-feedback mechanism that would set k ≤ 0.</li>
-</ol>
-<p><b>Apply today:</b> Pick one habit or metric in your week. Is its k positive or negative? Write down one change that would flip or reduce it.</p>
-<p>---</p>
-<p>Answer:</p>
-<ol>
-<li>70 / 5 ≈ <b>14 months</b> to double, so about 8 minutes.</li>
-<li>24 months ≈ 1.7 doublings → 4 × 2^1.7 ≈ <b>13 minutes</b> (e^(0.05×24) ≈ 3.3×).</li>
-<li>Examples: a CI build-time budget that fails when exceeded, a recurring "modularize one target" ticket, or required build caching and binary frameworks for stable modules.</li>
 </ol>
 </body>
 </html>
