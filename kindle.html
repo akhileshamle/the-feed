@@ -23,7 +23,33 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Fri 27 Nov, 23:25</p>
+<p class="when">Updated Fri 27 Nov, 23:42</p>
+<h2>ios</h2>
+<p class="when">Fri 27 Nov, 23:42</p>
+<h3>Friday: Debugging and Production</h3>
+<p><b>Why it matters:</b> A launch watchdog kill gets no crash handler and leaves no breadcrumb in most crash SDKs, so it can sit unnoticed while it drains retention. At scale, a 1% launch failure rate on older devices means hundreds of thousands of users who see an app that "just closes".</p>
+<p><b>Scenario:</b> Version 4.8 is at day 3 of a phased release. Xcode Organizer shows <code>0x8badf00d</code> launch terminations up 5x. They are almost all on A12/A13 devices, and the rate is still climbing. The diff has two suspects: a heavyweight Core Data migration and a new analytics SDK that starts in <code>didFinishLaunching</code> behind a remote flag. The flag value is read from cache at launch and refreshed after the first screen appears. A hotfix needs at least 48 hours, even with expedited review.</p>
+<p><b>Recall first</b></p>
+<ol>
+<li>Why can't the kill switch help the users who are hurt most?</li>
+<li>How do you get the main-thread stack when you can't reproduce the kill locally?</li>
+<li>What would you do in the next hour, and why?</li>
+</ol>
+<hr class="ans">
+<h3>Answer</h3>
+<p><b>Decision:</b> Pause the phased release now and flip the flag off anyway, since that helps users who haven't failed yet. Then pull the main-thread stacks from the watchdog reports in Organizer and from <code>MXAppLaunchDiagnostic</code> in MetricKit. If the stacks show a synchronous migration on the main thread, that is a crash loop: the watchdog kills the app mid-migration, so it restarts on every launch. Ship a hotfix that renders UI first and migrates in the background.</p>
+<pre>container.persistentStoreDescriptions.first?.shouldAddStoreAsynchronously = true
+showMigratingPlaceholder()
+container.loadPersistentStores { _, error in /* swap in real UI */ }</pre>
+<p><b>Rejected:</b></p>
+<ul>
+<li><i>Rolling back:</i> the App Store has no binary rollback.</li>
+<li><i>Flag only:</i> users killed during launch never reach the flag refresh.</li>
+<li><i>Local repro first:</i> the debugger turns off the watchdog, and fast devices hide the problem.</li>
+</ul>
+<p><b>Main risk:</b> Partially migrated stores. The hotfix must cope with a store that was interrupted mid-migration.</p>
+<p><b>Common mistake:</b> Measuring launch with Xcode attached, or on a current device, and declaring it fixed.</p>
+<hr>
 <h2>dsa</h2>
 <p class="when">Fri 27 Nov, 23:25</p>
 <h3>Friday: Trees (DFS, BFS, recursion)</h3>
@@ -85,24 +111,6 @@ return level_sum</pre>
 </ul>
 <p>With exact figures (86,400 s gives 4.32 GB/day and about 130 GB stored), the bill is about <b>$13</b>, close to the estimate.</p>
 <p>With 20 lines per request, every byte count is 5× larger: about 750 GB stored, so about <b>$75/month</b>. Storage alone is still cheap. Search and indexing tools usually charge per GB <i>ingested</i>, which is a 5× jump from 5 to 25 GB/day, so that's the factor to check first.</p>
-<hr>
-<h2>physics</h2>
-<p class="when">Fri 27 Nov, 23:24</p>
-<h3>Friday: Feedback Loops (dx/dt = kx)</h3>
-<p><b>The idea</b> When the output of a system feeds back into its own rate of change, you have a loop. If k is positive, growth causes more growth, so small things compound into big ones. If k is negative, the system pushes back against change and settles toward a set point, the way a thermostat holds a room's temperature.</p>
-<p><b>Today's question</b> An unanswered email backlog grows about 5% per day, because each delayed reply brings follow-ups and "just checking in" messages. If you do nothing, roughly how many days until the backlog doubles?</p>
-<p><b>Real-life application: software engineering</b> A <b>retry storm</b> is a k&gt;0 loop. A service slows down, clients time out and retry, the retries add load, and the service slows down even more. The usual fix is <b>exponential backoff with jitter</b>, which is a k&lt;0 loop: the more failures a client sees, the longer it waits before trying again, so the load falls and the service recovers. When a system spirals, find the loop first and then change the sign of k.</p>
-<p><b>2-minute exercise</b></p>
-<ol>
-<li>Write down one thing in your life that is getting steadily better or worse, such as savings, fitness, inbox size or a relationship.</li>
-<li>Mark its loop as <b>k&gt;0</b> (it compounds) or <b>k&lt;0</b> (it stabilizes).</li>
-<li>Name the variable that feeds back into itself.</li>
-<li>Name one small action that would flip the sign or change the size of k this week.</li>
-</ol>
-<p>Log it: date, concept, my answer, what I applied.</p>
-<hr class="ans">
-<h3>Answer</h3>
-<p>Use the rule of 70: doubling time ≈ 70 / (growth rate in %). At 5% per day, that is 70 / 5 ≈ <b>14 days</b>. The exact figure is ln2 / 0.05 ≈ 13.9 days. After four weeks the backlog would be about 4× its size today. Clearing even a small part of it every day turns k negative and stops the growth.</p>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
