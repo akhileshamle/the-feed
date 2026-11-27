@@ -12,6 +12,27 @@ Each run reads the event notes from the `claude-maxing` calendar, sends them to 
 appends the reply to `feed.json`, then commits and pushes. `index.html` renders `feed.json`;
 `kindle.html` is a static, script-free copy of the latest three entries for e-ink browsers.
 
+## How it fits together
+
+```mermaid
+flowchart TD
+    L["launchd<br/>11:15 physics · 11:25 math · 14:00 dsa"] --> R["bin/run-feed.sh &lt;slot&gt;"]
+    R --> LK{"lock free and<br/>not run today?"}
+    LK -- no --> SK["log and exit"]
+    LK -- yes --> C["Calendar: claude-maxing<br/>event notes"]
+    C --> CL["claude -p --tools ''"]
+    CL --> V{"reply starts<br/>with ## title?"}
+    V -- no --> BAD["log 'bad response', stop"]
+    V -- yes --> F["feed.json<br/>last 200 entries"]
+    F --> K["bin/make-kindle.py"]
+    K --> KH["kindle.html"]
+    F --> G["git commit, pull --rebase, push main"]
+    KH --> G
+    G --> P["GitHub Pages"]
+    P --> I["index.html<br/>reads feed.json"]
+    P --> KP["kindle.html<br/>static page"]
+```
+
 > **This repo and page are public.** Everything Claude writes here can be read by anyone with the URL.
 > Keep calendar notes free of private plans, finances, work-confidential details, links and credentials.
 
