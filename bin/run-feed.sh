@@ -83,7 +83,7 @@ PROMPT="Today is $TODAY. You are producing today's '$SLOT' micro-session for an 
 --- CALENDAR NOTES ---
 $NOTES"
 
-RESPONSE="$(printf '%s' "$PROMPT" | "$CLAUDE_BIN" -p 2>>"$LOG")" || { log "claude failed"; exit 1; }
+RESPONSE="$(printf '%s' "$PROMPT" | "$CLAUDE_BIN" -p --tools "" 2>>"$LOG")" || { log "claude failed"; exit 1; }
 if [ -z "${RESPONSE// /}" ]; then log "empty response"; exit 1; fi
 # a real session starts with a Markdown title; anything else (CLI error, login notice) must not go public
 FIRST_LINE="$(printf '%s\n' "$RESPONSE" | grep -m1 -v '^[[:space:]]*$' || true)"
