@@ -23,7 +23,24 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Sat 28 Nov, 06:05</p>
+<p class="when">Updated Sat 28 Nov, 11:15</p>
+<h2>physics</h2>
+<p class="when">Sat 28 Nov, 11:15</p>
+<h3>Saturday: Entropy and Stability (dS ≥ 0; d²U/dx² &gt; 0)</h3>
+<p><b>The idea:</b> Left alone, order decays: files clutter, code rots, budgets drift. Keeping things orderly costs energy, which is maintenance. A system is stable when a small push makes it roll back (like a ball in a bowl, d²U/dx² &gt; 0) and fragile when a small push sends it away (a ball on a hill).</p>
+<p><b>Question:</b> Your weekly routine works only if nothing goes wrong: one missed workout or late night and it collapses. Is it in a bowl or on a hill, and what single change would make it self-correcting?</p>
+<p><b>Application (software engineering):</b> A codebase with no tests or dependency updates drifts toward disorder. Each untouched month adds hidden breakage. A scheduled weekly 30-minute maintenance slot (update dependencies, delete dead code, fix a flaky test) is the energy you spend to hold entropy back. Even better, a CI check that fails loudly when something breaks works as a bowl: deviations get pushed back automatically.</p>
+<p><b>2-minute exercise:</b> Pick one routine you rely on (sleep, finances, inbox, a project). Write:</p>
+<ol>
+<li>What is the "small push" that most often disturbs it?</li>
+<li>Does it recover on its own, or does it need you to notice?</li>
+<li>One restoring force to add (a default, a reminder, a buffer).</li>
+</ol>
+<p><b>Log it:</b> date, concept, my answer, what I applied.</p>
+<hr class="ans">
+<h3>Answer</h3>
+<p>A routine that collapses after one miss is on a hill: the missed day makes the next miss more likely, so deviation grows rather than shrinks. To convert it to a bowl, add a restoring rule, such as "never miss twice" or a minimum version (10 minutes instead of 60). A miss then pulls you back toward the routine instead of away from it. The cost is the small ongoing effort of keeping that rule, which is the energy that holds entropy back.</p>
+<hr>
 <h2>ios</h2>
 <p class="when">Sat 28 Nov, 06:05</p>
 <h3>Saturday: Mobile System Design (Offline Outbox and Sync)</h3>
@@ -91,35 +108,6 @@ def dfs(node):
 dfs(root)
 return best</pre>
 <p><b>Complexity:</b> Time O(n), each node visited once. Space O(h) for the recursion stack, where h is the tree height (O(n) worst case, O(log n) balanced).</p>
-<hr>
-<h2>math</h2>
-<p class="when">Fri 27 Nov, 23:57</p>
-<h3>Friday: Fermi estimation</h3>
-<p>Break an unknown quantity into 3-5 factors you can guess, then multiply them. Individual guesses may be off, but errors tend to partly cancel, so you land within a factor of 2-3 of the truth.</p>
-<p><b>Problem:</b> A coffee shop near a train station wants to know how many cups of coffee it must sell per year to justify a second espresso machine. First, estimate the cups a single busy city-centre café sells per year using these guesses:</p>
-<ul>
-<li>Customers per hour in open hours: 30</li>
-<li>Open hours per day: 10</li>
-<li>Share of customers who buy at least one coffee: 60%</li>
-<li>Open days per year: 350</li>
-</ul>
-<p>How many cups per year, roughly? Then, if each cup brings £1.80 gross margin, what is the yearly gross margin from coffee?</p>
-<p><b>Try it first:</b></p>
-<ul>
-<li>Multiply customers per day first, then the coffee share.</li>
-<li>Round to friendly numbers (e.g. 350 ≈ 3.5 x 100) and track powers of ten separately.</li>
-<li>Margin is just cups times £1.80; round £1.80 to £2 for a sanity check, then adjust.</li>
-</ul>
-<p><b>Why it matters:</b> Quick order-of-magnitude estimates let you sanity-check a business case, a capacity plan or a quote before anyone builds a spreadsheet.</p>
-<hr class="ans">
-<h3>Answer</h3>
-<ul>
-<li>Customers per day: 30 x 10 = 300</li>
-<li>Coffee buyers per day: 300 x 0.6 = 180 cups</li>
-<li>Per year: 180 x 350 = 63,000 cups</li>
-<li>Margin: 63,000 x £1.80 = £113,400 (sanity check: 63,000 x 2 = £126,000, slightly higher, as expected)</li>
-</ul>
-<p>So about 63,000 cups and roughly £110k gross margin per year.</p>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
