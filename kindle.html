@@ -23,7 +23,45 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Sat 28 Nov, 11:25</p>
+<p class="when">Updated Sat 28 Nov, 16:25</p>
+<h2>dsa</h2>
+<p class="when">Sat 28 Nov, 16:25</p>
+<h3>Saturday: Graphs (BFS/DFS, union-find, topological sort)</h3>
+<p><b>When to reach for it:</b> Use it when items have pairwise dependencies or connections and you need an ordering, grouping, or reachability answer.</p>
+<p><b>Problem: Parallel Courses</b> There are <code>n</code> courses labeled <code>1..n</code> and a list of pairs <code>[a, b]</code>, meaning course <code>a</code> must be finished before <code>b</code> can start. Each semester you may take any number of courses whose prerequisites were all completed in <i>earlier</i> semesters. Return the minimum number of semesters to finish every course, or <code>-1</code> if that's impossible.</p>
+<p>Example: <code>n = 3</code>, <code>prereqs = [[1,3],[2,3]]</code> → <code>2</code> (courses 1 and 2 in semester 1, course 3 in semester 2).</p>
+<p><b>Recall first</b> (answer before reading on):</p>
+<ol>
+<li>What is the brute force?</li>
+<li>What is the key observation?</li>
+<li>What complexity should you target?</li>
+</ol>
+<hr class="ans">
+<h3>Answer</h3>
+<p><b>Approach:</b> Brute force tries orderings or repeatedly rescans all courses each semester, which is wasteful. The key observation is that this is a topological sort by levels. Courses with in-degree 0 can go in semester 1. Removing them frees the next layer, and so on. The number of layers is the answer. If you finish with fewer than <code>n</code> courses taken, a cycle exists, so return <code>-1</code>.</p>
+<pre>def min_semesters(n, prereqs):
+    adj = [[] for _ in range(n + 1)]
+    indeg = [0] * (n + 1)
+    for a, b in prereqs:
+        adj[a].append(b)
+        indeg[b] += 1
+
+    queue = [c for c in range(1, n + 1) if indeg[c] == 0]
+    taken = 0
+    semesters = 0
+    while queue:
+        semesters += 1
+        nxt = []
+        for c in queue:
+            taken += 1
+            for d in adj[c]:
+                indeg[d] -= 1
+                if indeg[d] == 0:
+                    nxt.append(d)
+        queue = nxt
+    return semesters if taken == n else -1</pre>
+<p><b>Complexity:</b> Time O(n + E), since each node and edge is processed once. Space O(n + E) for the adjacency list, in-degrees, and queue. The target is linear in the size of the graph.</p>
+<hr>
 <h2>math</h2>
 <p class="when">Sat 28 Nov, 11:25</p>
 <h3>Saturday: the 37% rule</h3>
@@ -72,40 +110,6 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 <hr class="ans">
 <h3>Answer</h3>
 <p>A routine that collapses after one miss is on a hill: the missed day makes the next miss more likely, so deviation grows rather than shrinks. To convert it to a bowl, add a restoring rule, such as "never miss twice" or a minimum version (10 minutes instead of 60). A miss then pulls you back toward the routine instead of away from it. The cost is the small ongoing effort of keeping that rule, which is the energy that holds entropy back.</p>
-<hr>
-<h2>ios</h2>
-<p class="when">Sat 28 Nov, 06:05</p>
-<h3>Saturday: Mobile System Design (Offline Outbox and Sync)</h3>
-<p><b>Why this matters:</b> Offline writes that get lost, duplicated or silently overwritten destroy user trust faster than any crash. At scale, the retry path runs millions of times a day, so every small ambiguity turns into a support ticket.</p>
-<p><b>Scenario:</b> You own a field-inspection app. Technicians edit checklists and attach 5–15 MB photos in basements with no signal, sometimes for hours. The backend is a REST API with last-write-wins semantics. You can add headers (ETag/If-Match, Idempotency-Key) but not a sync protocol. Two technicians sometimes edit the same inspection. The app is often killed or backgrounded before it finishes uploading.</p>
-<p><b>Recall first:</b></p>
-<ol>
-<li>How do you guarantee each edit is applied exactly once despite retries and app termination?</li>
-<li>How do you stop one technician from silently overwriting the other's changes when the server is last-write-wins?</li>
-<li>What would you do and why: how do you upload the photos and order them against the record edits that reference them?</li>
-</ol>
-<hr class="ans">
-<h3>Answer</h3>
-<p><b>Decision:</b> Use a persistent outbox in SQLite, written in the same transaction as the local change. Each entry is a field-level patch with an idempotency key and the ETag it was based on. Entries drain serially per entity and in parallel across entities.</p>
-<ul>
-<li><b>Photos:</b> Upload each photo first using a background <code>URLSession</code> upload from a file, which survives termination. The checklist patch that references the photo depends on that upload and is unblocked only when the server returns the asset ID.</li>
-<li><b>Conflicts:</b> Send the base ETag in <code>If-Match</code>. On a 412, fetch the server version and rebase the field patches. If the same field changed on both sides, show the conflict to the user.</li>
-</ul>
-<p><b>Rejected:</b></p>
-<ul>
-<li>Sending the whole object (PUT) overwrites the other technician's fields.</li>
-<li>Relying on <code>BGProcessingTask</code> alone fails because it isn't guaranteed to run.</li>
-<li>CRDTs would need a server you can't change.</li>
-</ul>
-<p><b>Main risk:</b> A poisoned entry at the head of the queue blocks that entity forever. Add capped backoff and a dead-letter state that is visible in the UI.</p>
-<p><b>Common mistake:</b> Generating the idempotency key at send time. Retries then get new keys and create duplicates. Generate it when the entry is enqueued.</p>
-<pre>struct OutboxOp: Codable {
-    let id: UUID          // idempotency key, fixed at enqueue
-    let entityID: String
-    let baseETag: String?
-    let patch: [String: JSONValue]
-    var dependsOn: [UUID] // e.g. photo uploads
-}</pre>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
