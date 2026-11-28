@@ -23,7 +23,41 @@ blockquote { margin: 8px 0; padding-left: 12px; border-left: 3px solid #000; }
 </head>
 <body>
 <h1>The Feed</h1>
-<p class="when">Updated Fri 27 Nov, 23:58</p>
+<p class="when">Updated Sat 28 Nov, 06:05</p>
+<h2>ios</h2>
+<p class="when">Sat 28 Nov, 06:05</p>
+<h3>Saturday: Mobile System Design (Offline Outbox and Sync)</h3>
+<p><b>Why this matters:</b> Offline writes that get lost, duplicated or silently overwritten destroy user trust faster than any crash. At scale, the retry path runs millions of times a day, so every small ambiguity turns into a support ticket.</p>
+<p><b>Scenario:</b> You own a field-inspection app. Technicians edit checklists and attach 5–15 MB photos in basements with no signal, sometimes for hours. The backend is a REST API with last-write-wins semantics. You can add headers (ETag/If-Match, Idempotency-Key) but not a sync protocol. Two technicians sometimes edit the same inspection. The app is often killed or backgrounded before it finishes uploading.</p>
+<p><b>Recall first:</b></p>
+<ol>
+<li>How do you guarantee each edit is applied exactly once despite retries and app termination?</li>
+<li>How do you stop one technician from silently overwriting the other's changes when the server is last-write-wins?</li>
+<li>What would you do and why: how do you upload the photos and order them against the record edits that reference them?</li>
+</ol>
+<hr class="ans">
+<h3>Answer</h3>
+<p><b>Decision:</b> Use a persistent outbox in SQLite, written in the same transaction as the local change. Each entry is a field-level patch with an idempotency key and the ETag it was based on. Entries drain serially per entity and in parallel across entities.</p>
+<ul>
+<li><b>Photos:</b> Upload each photo first using a background <code>URLSession</code> upload from a file, which survives termination. The checklist patch that references the photo depends on that upload and is unblocked only when the server returns the asset ID.</li>
+<li><b>Conflicts:</b> Send the base ETag in <code>If-Match</code>. On a 412, fetch the server version and rebase the field patches. If the same field changed on both sides, show the conflict to the user.</li>
+</ul>
+<p><b>Rejected:</b></p>
+<ul>
+<li>Sending the whole object (PUT) overwrites the other technician's fields.</li>
+<li>Relying on <code>BGProcessingTask</code> alone fails because it isn't guaranteed to run.</li>
+<li>CRDTs would need a server you can't change.</li>
+</ul>
+<p><b>Main risk:</b> A poisoned entry at the head of the queue blocks that entity forever. Add capped backoff and a dead-letter state that is visible in the UI.</p>
+<p><b>Common mistake:</b> Generating the idempotency key at send time. Retries then get new keys and create duplicates. Generate it when the entry is enqueued.</p>
+<pre>struct OutboxOp: Codable {
+    let id: UUID          // idempotency key, fixed at enqueue
+    let entityID: String
+    let baseETag: String?
+    let patch: [String: JSONValue]
+    var dependsOn: [UUID] // e.g. photo uploads
+}</pre>
+<hr>
 <h2>dsa</h2>
 <p class="when">Fri 27 Nov, 23:58</p>
 <h3>Friday: Trees (DFS, BFS, recursion)</h3>
@@ -86,18 +120,6 @@ return best</pre>
 <li>Margin: 63,000 x £1.80 = £113,400 (sanity check: 63,000 x 2 = £126,000, slightly higher, as expected)</li>
 </ul>
 <p>So about 63,000 cups and roughly £110k gross margin per year.</p>
-<hr>
-<h2>physics</h2>
-<p class="when">Fri 27 Nov, 23:57</p>
-<h3>Friday: Feedback loops (dx/dt = kx; k&gt;0 compounds, k&lt;0 stabilizes)</h3>
-<p><b>The idea:</b> A feedback loop means the current size of something changes its own rate of growth. When k&gt;0, more begets more (compounding, runaway). When k&lt;0, any drift away from a target triggers a push back toward it (a thermostat).</p>
-<p><b>Question:</b> A team's on-call alerts create fatigue. Each unresolved alert causes people to ignore the next ones, which leads to more unresolved alerts. Is k positive or negative? What single change flips its sign?</p>
-<p><b>Real-life application (software engineering):</b> Test suites with flaky tests. A flaky failure teaches people to re-run instead of investigate, so they trust the suite less, write fewer tests, and the flakiness goes unfixed, which creates more flakes. Teams that quarantine a flaky test within 24 hours turn k negative: the failure gets a fast, forced response, and the suite pulls back toward healthy.</p>
-<p><b>2-minute exercise:</b> Pick one loop in your life right now (sleep, inbox, savings, a codebase). Write two lines: "More X causes more Y, which causes more X" and where the loop currently sits (k&gt;0 or k&lt;0). Then name one lever that would flip it.</p>
-<p><b>Log it:</b> date, concept, my answer, what I applied.</p>
-<hr class="ans">
-<h3>Answer</h3>
-<p>k is positive: ignored alerts breed more ignored alerts, so the problem compounds. To flip the sign, make every alert actionable and owned. Delete or tune any alert that no one acts on, and require a response for the rest. Fewer, trusted alerts mean a missed one gets noticed and corrected, so deviation shrinks (k&lt;0).</p>
 <p class="foot"><a href="index.html">Full feed</a></p>
 </body>
 </html>
